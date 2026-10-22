@@ -1,2 +1,17 @@
-CLAUDE2.md
+# Instrucciones locales del asistente
 CLAUDE.md
+
+# Variables de entorno con credenciales: nunca se suben
+.env
+
+# Entorno virtual
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Archivos subidos y estáticos recolectados
+media/
+staticfiles/
