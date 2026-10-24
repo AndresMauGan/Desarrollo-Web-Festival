@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load festival_extras %}
+{% comment %}Ediciones: detalle (CU-02).{% endcomment %}
+
+{% block titulo %}{{ edicion.nombre }}{% endblock %}
+
+{% block contenido %}
+<a class="volver" href="{% url 'festival:ediciones' %}"><i class="ph ph-caret-left" aria-hidden="true"></i> Ediciones</a>
+<h1 class="vista-titulo serif">{{ edicion.nombre }}</h1>
+<p class="vista-sub">Edición número {{ edicion.numero }} · {{ edicion.anio }}{% if edicion.activa %} <span class="badge badge-activa">Activa</span>{% endif %}</p>
+
+<dl class="datos">
+  <dt>Fechas</dt><dd>{% rango_fechas edicion.fecha_inicio edicion.fecha_fin %}</dd>
+  {% if edicion.homenaje %}<dt>Homenaje</dt><dd>{{ edicion.homenaje }}</dd>{% endif %}
+  <dt>Categorías publicadas</dt><dd>{{ total_categorias }}</dd>
+</dl>
+
+<div class="acciones">
+  <a class="btn btn-primary btn-block" href="{% url 'festival:categorias' edicion.anio %}"><i class="ph-fill ph-squares-four" aria-hidden="true"></i> Ver categorías</a>
+</div>
+{% endblock %}

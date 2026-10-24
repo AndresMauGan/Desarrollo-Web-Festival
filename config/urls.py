@@ -3,7 +3,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
 
 admin.site.site_header = "Festival de la Leyenda Vallenata · Administración"
 admin.site.site_title = "Administración del Festival"
@@ -11,8 +11,8 @@ admin.site.index_title = "Gestión de ediciones, categorías, votaciones y opcio
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    # Integrante 3 agrega aquí las rutas de cuentas (registro, inicio y cierre de sesión)
-    # e Integrante 4 las rutas públicas de festival, con include().
+    # Integrante 3 agrega aquí las rutas de cuentas (registro, inicio y cierre de sesión).
+    path("", include("festival.urls")),
 ]
 
 if settings.DEBUG:

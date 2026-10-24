@@ -1,0 +1,46 @@
+{% load static festival_extras %}<!DOCTYPE html>
+<html lang="es-CO">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#fdfbf7">
+  <title>{% block titulo %}Votación del público{% endblock %} · Festival de la Leyenda Vallenata</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.2"></script>
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+<a class="saltar" href="#contenido">Saltar al contenido</a>
+<div class="app">
+
+  <header class="topbar">
+    <a class="brand" href="{% url 'festival:inicio' %}">
+      <span class="brand-mark" aria-hidden="true"><i class="ph-fill ph-music-notes"></i></span>
+      <span class="serif">Leyenda Vallenata</span>
+    </a>
+    {% block sesion %}{% endblock %}
+  </header>
+
+  <main id="contenido">
+    {% block contenido %}{% endblock %}
+  </main>
+
+  {% seccion_activa as seccion %}
+  <nav class="bottom-nav" aria-label="Navegación principal">
+    <a class="nav-item{% if seccion == 'inicio' %} active{% endif %}"{% if seccion == 'inicio' %} aria-current="page"{% endif %} href="{% url 'festival:inicio' %}"><i class="ph ph-house" aria-hidden="true"></i>Inicio</a>
+    <a class="nav-item{% if seccion == 'categorias' %} active{% endif %}"{% if seccion == 'categorias' %} aria-current="page"{% endif %} href="{% url 'festival:categorias_actuales' %}"><i class="ph ph-squares-four" aria-hidden="true"></i>Categorías</a>
+    <a class="nav-item{% if seccion == 'ediciones' %} active{% endif %}"{% if seccion == 'ediciones' %} aria-current="page"{% endif %} href="{% url 'festival:ediciones' %}"><i class="ph ph-calendar-blank" aria-hidden="true"></i>Ediciones</a>
+  </nav>
+</div>
+
+{% if messages %}
+<div class="toasts" role="status" aria-live="polite">
+  {% for mensaje in messages %}<p class="toast{% if mensaje.level_tag == 'error' %} error{% endif %}">{{ mensaje }}</p>{% endfor %}
+</div>
+{% endif %}
+
+<script src="{% static 'js/app.js' %}"></script>
+</body>
+</html>
