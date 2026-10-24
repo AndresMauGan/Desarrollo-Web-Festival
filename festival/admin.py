@@ -79,10 +79,10 @@ class VotacionAdminForm(forms.ModelForm):
 class VotacionAdmin(admin.ModelAdmin):
     form = VotacionAdminForm
     list_display = ("nombre", "categoria", "ronda", "estado", "abre_en", "cierra_en", "limite_votos_por_usuario", "visibilidad_resultados")
-    list_filter = ("estado", "ronda", "visibilidad_resultados", "categoria__edicion", "categoria")
+    # Filtro por fecha en lugar de date_hierarchy: este usa CONVERT_TZ y falla en MySQL sin las tablas de zonas horarias.
+    list_filter = ("estado", "ronda", "visibilidad_resultados", "categoria__edicion", "categoria", "abre_en")
     search_fields = ("nombre", "categoria__nombre")
     ordering = ("abre_en", "nombre")
-    date_hierarchy = "abre_en"
     inlines = [OpcionInline]
     fieldsets = (
         (None, {"fields": ("categoria", "nombre", "ronda", "estado")}),
