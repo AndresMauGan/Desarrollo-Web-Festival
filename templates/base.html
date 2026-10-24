@@ -20,7 +20,11 @@
       <span class="brand-mark" aria-hidden="true"><i class="ph-fill ph-music-notes"></i></span>
       <span class="serif">Leyenda Vallenata</span>
     </a>
-    {% block sesion %}{% endblock %}
+    {% if user.is_authenticated %}
+      <a class="user-chip on" href="{% url 'cuentas:cuenta' %}" title="{{ user.email }}">{{ user.nombre_para_mostrar|default:user.email }}</a>
+    {% else %}
+      <a class="user-chip" href="{% url 'cuentas:login' %}">Sin sesión</a>
+    {% endif %}
   </header>
 
   <main id="contenido">
@@ -32,6 +36,7 @@
     <a class="nav-item{% if seccion == 'inicio' %} active{% endif %}"{% if seccion == 'inicio' %} aria-current="page"{% endif %} href="{% url 'festival:inicio' %}"><i class="ph ph-house" aria-hidden="true"></i>Inicio</a>
     <a class="nav-item{% if seccion == 'categorias' %} active{% endif %}"{% if seccion == 'categorias' %} aria-current="page"{% endif %} href="{% url 'festival:categorias_actuales' %}"><i class="ph ph-squares-four" aria-hidden="true"></i>Categorías</a>
     <a class="nav-item{% if seccion == 'ediciones' %} active{% endif %}"{% if seccion == 'ediciones' %} aria-current="page"{% endif %} href="{% url 'festival:ediciones' %}"><i class="ph ph-calendar-blank" aria-hidden="true"></i>Ediciones</a>
+    <a class="nav-item{% if seccion == 'cuenta' %} active{% endif %}"{% if seccion == 'cuenta' %} aria-current="page"{% endif %} href="{% if user.is_authenticated %}{% url 'cuentas:cuenta' %}{% else %}{% url 'cuentas:login' %}{% endif %}"><i class="ph ph-user-circle" aria-hidden="true"></i>Cuenta</a>
   </nav>
 </div>
 
