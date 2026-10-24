@@ -15,6 +15,10 @@ class UsuarioManager(BaseUserManager):
         usuario.save(using=self._db)
         return usuario
 
+    def get_by_natural_key(self, email):
+        # El inicio de sesión no distingue mayúsculas en el correo, igual que la intercalación de MySQL.
+        return self.get(email__iexact=email)
+
     def create_user(self, email, password=None, **campos):
         campos.setdefault("is_staff", False)
         campos.setdefault("is_superuser", False)

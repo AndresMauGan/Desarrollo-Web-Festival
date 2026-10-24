@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% comment %}Pantalla 3 · Inicio de sesión (CU-01) con LoginView.{% endcomment %}
+
+{% block titulo %}Inicia sesión{% endblock %}
+
+{% block contenido %}
+<h1 class="vista-titulo serif">Inicia sesión</h1>
+<p class="vista-sub">Entra con tu correo y tu contraseña.</p>
+
+<form method="post" class="card" novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+    <ul class="errores" role="alert">{% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul>
+  {% endif %}
+  {% include "registration/_campo.html" with campo=form.username %}
+  {% include "registration/_campo.html" with campo=form.password %}
+  <input type="hidden" name="next" value="{{ next }}">
+  <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+  <p class="center" style="margin-top:0.5rem"><a class="btn-link" href="{% url 'cuentas:registro' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Crear una cuenta</a></p>
+</form>
+{% endblock %}
