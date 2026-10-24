@@ -27,10 +27,7 @@
     {% endif %}
   </header>
 
-  <main id="contenido">
-    {% block contenido %}{% endblock %}
-  </main>
-
+  {% comment %}En celular y tableta es la barra inferior fija; en escritorio va en la barra superior (ver styles.css).{% endcomment %}
   {% seccion_activa as seccion %}
   <nav class="bottom-nav" aria-label="Navegación principal">
     <a class="nav-item{% if seccion == 'inicio' %} active{% endif %}"{% if seccion == 'inicio' %} aria-current="page"{% endif %} href="{% url 'festival:inicio' %}"><i class="ph ph-house" aria-hidden="true"></i>Inicio</a>
@@ -38,6 +35,10 @@
     <a class="nav-item{% if seccion == 'ediciones' %} active{% endif %}"{% if seccion == 'ediciones' %} aria-current="page"{% endif %} href="{% url 'festival:ediciones' %}"><i class="ph ph-calendar-blank" aria-hidden="true"></i>Ediciones</a>
     <a class="nav-item{% if seccion == 'cuenta' %} active{% endif %}"{% if seccion == 'cuenta' %} aria-current="page"{% endif %} href="{% if user.is_authenticated %}{% url 'cuentas:cuenta' %}{% else %}{% url 'cuentas:login' %}{% endif %}"><i class="ph ph-user-circle" aria-hidden="true"></i>Cuenta</a>
   </nav>
+
+  <main id="contenido">
+    {% block contenido %}{% endblock %}
+  </main>
 </div>
 
 {% if messages %}

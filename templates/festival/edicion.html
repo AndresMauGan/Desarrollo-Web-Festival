@@ -5,6 +5,7 @@
 {% block titulo %}{{ edicion.nombre }}{% endblock %}
 
 {% block contenido %}
+<div class="angosto">
 <a class="volver" href="{% url 'festival:ediciones' %}"><i class="ph ph-caret-left" aria-hidden="true"></i> Ediciones</a>
 <h1 class="vista-titulo serif">{{ edicion.nombre }}</h1>
 <p class="vista-sub">Edición número {{ edicion.numero }} · {{ edicion.anio }}{% if edicion.activa %} <span class="badge badge-activa">Activa</span>{% endif %}</p>
@@ -17,5 +18,6 @@
 
 <div class="acciones">
   <a class="btn btn-primary btn-block" href="{% url 'festival:categorias' edicion.anio %}"><i class="ph-fill ph-squares-four" aria-hidden="true"></i> Ver categorías</a>
+</div>
 </div>
 {% endblock %}

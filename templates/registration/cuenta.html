@@ -4,6 +4,7 @@
 {% block titulo %}Tu cuenta{% endblock %}
 
 {% block contenido %}
+<div class="angosto">
 <h1 class="vista-titulo serif">Tu cuenta</h1>
 <p class="vista-sub">Sesión iniciada.</p>
 
@@ -25,5 +26,6 @@
     {% csrf_token %}
     <button type="submit" class="btn btn-ghost btn-block">Cerrar sesión</button>
   </form>
+</div>
 </div>
 {% endblock %}

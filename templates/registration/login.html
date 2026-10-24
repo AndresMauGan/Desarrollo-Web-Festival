@@ -4,6 +4,7 @@
 {% block titulo %}Inicia sesión{% endblock %}
 
 {% block contenido %}
+<div class="angosto">
 <h1 class="vista-titulo serif">Inicia sesión</h1>
 <p class="vista-sub">Entra con tu correo y tu contraseña.</p>
 
@@ -18,4 +19,5 @@
   <button type="submit" class="btn btn-primary btn-block">Entrar</button>
   <p class="center" style="margin-top:0.5rem"><a class="btn-link" href="{% url 'cuentas:registro' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Crear una cuenta</a></p>
 </form>
+</div>
 {% endblock %}

@@ -176,6 +176,54 @@ a.fila:active { transform: scale(0.985); }
 .toast.error { background: var(--red); }
 .toast.oculto { opacity: 0; transform: translateY(1rem); }
 
+/* ---------- Columna angosta para formularios y páginas cortas ---------- */
+.angosto { max-width: 30rem; margin: 0 auto; }
+
+/* ==========================================================================
+   Responsive. La base de arriba es la de celular; estas reglas la amplían.
+   ========================================================================== */
+
+/* Tableta (desde 768 px): columna más ancha, rejillas de más columnas; la barra inferior se mantiene */
+@media (min-width: 48rem) {
+  .app, .bottom-nav { max-width: 48rem; }
+  .topbar { padding-left: 1.5rem; padding-right: 1.5rem; }
+  main { padding-left: 1.5rem; padding-right: 1.5rem; }
+  .user-chip { max-width: 14rem; }
+  .hero { padding: 2.25rem 2rem; }
+  .hero h1 { font-size: 2rem; }
+  .countdown { max-width: 32rem; margin-left: auto; margin-right: auto; }
+  .btn-hero { max-width: 22rem; }
+  .cat-grid { grid-template-columns: repeat(4, 1fr); }
+  .lista { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Escritorio (desde 1024 px): página ancha y navegación en la barra superior */
+@media (min-width: 64rem) {
+  .app { max-width: 72rem; box-shadow: none; }
+  .topbar { padding-left: 2rem; padding-right: 2rem; }
+  .bottom-nav {
+    top: 0; bottom: auto; width: auto; max-width: none; height: calc(4.5rem + 1px);
+    grid-auto-columns: max-content; align-items: center; gap: 0.25rem; padding: 0;
+    background: transparent; backdrop-filter: none; border-top: 0;
+  }
+  .nav-item { flex-direction: row; gap: 0.5rem; min-height: 3rem; padding: 0 1rem; border-radius: 9999px; font-size: 0.875rem; }
+  .nav-item i { font-size: 1.25rem; }
+  .nav-item:hover { color: var(--amber-dark); }
+  .nav-item.active { background: var(--amber-soft); color: var(--amber-dark); }
+  main { padding: 2rem 2rem 3rem; }
+  .vista-titulo { font-size: 2rem; }
+  .hero { padding: 3rem 2.5rem; }
+  .hero h1 { font-size: 2.5rem; }
+  .lista { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .toasts { bottom: 1.5rem; }
+
+  /* Detalle de la votación: datos a la izquierda (fijos al desplazar) y opciones a la derecha */
+  .detalle { display: grid; grid-template-columns: minmax(0, 22rem) minmax(0, 1fr); gap: 2rem; align-items: start; }
+  .detalle .datos { position: sticky; top: 6rem; }
+  .detalle .seccion-titulo { margin-top: 0; }
+  .detalle .lista { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 /* ---------- Accesibilidad: movimiento reducido ---------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }

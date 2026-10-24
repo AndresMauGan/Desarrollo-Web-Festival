@@ -12,6 +12,7 @@ Sin conteos (RN-06, pendiente) y sin botón de voto: el registro de votos llega 
 <h1 class="vista-titulo serif">{{ votacion.nombre }}</h1>
 <p class="vista-sub">{{ votacion.get_ronda_display }} · {{ votacion.categoria.edicion.anio }} {% estado_votacion votacion %}</p>
 
+<div class="detalle">
 <dl class="datos">
   <dt>Abre</dt><dd>{{ votacion.abre_en|fecha_hora_co }}</dd>
   <dt>Cierra</dt><dd>{{ votacion.cierra_en|fecha_hora_co }}</dd>
@@ -23,7 +24,8 @@ Sin conteos (RN-06, pendiente) y sin botón de voto: el registro de votos llega 
     <span class="dd-nota">Pendiente de la decisión de la Fundación (P-05).</span></dd>
 </dl>
 
-<h2 class="seccion-titulo">Opciones</h2>
+<section aria-labelledby="titulo-opciones">
+<h2 class="seccion-titulo" id="titulo-opciones">Opciones</h2>
 {% if opciones %}
   <div class="lista">
     {% for opcion in opciones %}
@@ -42,4 +44,6 @@ Sin conteos (RN-06, pendiente) y sin botón de voto: el registro de votos llega 
 {% endif %}
 
 <p class="pendiente" style="margin-top:1.25rem"><i class="ph-fill ph-hourglass" aria-hidden="true"></i><span>El registro de votos todavía no está habilitado.</span></p>
+</section>
+</div>
 {% endblock %}

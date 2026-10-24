@@ -4,6 +4,7 @@
 {% block titulo %}Crea tu cuenta{% endblock %}
 
 {% block contenido %}
+<div class="angosto">
 <h1 class="vista-titulo serif">Crea tu cuenta</h1>
 <p class="vista-sub">Con tu cuenta podrás votar cuando se habilite el registro de votos.</p>
 
@@ -22,4 +23,5 @@
   <button type="submit" class="btn btn-primary btn-block" style="margin-top:1rem">Crear cuenta</button>
   <p class="center" style="margin-top:0.5rem"><a class="btn-link" href="{% url 'cuentas:login' %}">Ya tengo cuenta</a></p>
 </form>
+</div>
 {% endblock %}
