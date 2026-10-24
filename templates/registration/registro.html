@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% comment %}Pantalla 2 · Registro (CU-01): sin celular (P-01) y con las dos casillas separadas.{% endcomment %}
+
+{% block titulo %}Crea tu cuenta{% endblock %}
+
+{% block contenido %}
+<div class="angosto">
+<h1 class="vista-titulo serif">Crea tu cuenta</h1>
+<p class="vista-sub">Con tu cuenta podrás votar cuando se habilite el registro de votos.</p>
+
+<form method="post" class="card" novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+    <ul class="errores" role="alert">{% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul>
+  {% endif %}
+  {% include "registration/_campo.html" with campo=form.email %}
+  {% include "registration/_campo.html" with campo=form.nombre_para_mostrar %}
+  {% include "registration/_campo.html" with campo=form.password1 %}
+  {% include "registration/_campo.html" with campo=form.password2 %}
+  {% include "registration/_campo.html" with campo=form.autoriza_datos %}
+  {% include "registration/_campo.html" with campo=form.mayor_edad %}
+  <input type="hidden" name="next" value="{{ request.GET.next|default:'' }}">
+  <button type="submit" class="btn btn-primary btn-block" style="margin-top:1rem">Crear cuenta</button>
+  <p class="center" style="margin-top:0.5rem"><a class="btn-link" href="{% url 'cuentas:login' %}">Ya tengo cuenta</a></p>
+</form>
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% comment %}Un campo de formulario con el estilo del prototipo. Django agrega aria-invalid y aria-describedby.{% endcomment %}
+{% if campo.field.widget.input_type == "checkbox" %}
+  <label class="check" for="{{ campo.id_for_label }}">
+    {{ campo }}
+    <span>{{ campo.label }}{% if campo.help_text %}<span class="ayuda" id="{{ campo.auto_id }}_helptext" style="display:block">{{ campo.help_text }}</span>{% endif %}</span>
+  </label>
+  {% for error in campo.errors %}<p class="error" role="alert">{{ error }}</p>{% endfor %}
+{% else %}
+  <div class="campo">
+    <label for="{{ campo.id_for_label }}">{{ campo.label }}</label>
+    {{ campo }}
+    {% if campo.help_text %}<div class="ayuda" id="{{ campo.auto_id }}_helptext">{{ campo.help_text|safe }}</div>{% endif %}
+    {% for error in campo.errors %}<p class="error" role="alert">{{ error }}</p>{% endfor %}
+  </div>
+{% endif %}

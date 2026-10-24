@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load festival_extras %}
+{% comment %}Pantalla 1 · Inicio (CU-02): edición activa y sus categorías publicadas.{% endcomment %}
+
+{% block titulo %}Inicio{% endblock %}
+
+{% block contenido %}
+{% if edicion %}
+  <section class="hero" aria-labelledby="hero-titulo">
+    <h1 id="hero-titulo" class="serif">{{ edicion.nombre }}</h1>
+    <p>{% rango_fechas edicion.fecha_inicio edicion.fecha_fin %}</p>
+    {% if edicion.homenaje %}<p>{{ edicion.homenaje }}</p>{% endif %}
+
+    {% if fase == "antes" %}
+      <p>Faltan para que comience el Festival:</p>
+      <div class="countdown" role="timer" aria-label="Cuenta regresiva para el inicio del Festival" data-hasta="{{ inicio_iso }}">
+        <div class="cd-cell"><span class="cd-num" data-cd="dias">00</span><span class="cd-lbl">Días</span></div>
+        <div class="cd-cell"><span class="cd-num" data-cd="horas">00</span><span class="cd-lbl">Horas</span></div>
+        <div class="cd-cell"><span class="cd-num" data-cd="min">00</span><span class="cd-lbl">Minutos</span></div>
+        <div class="cd-cell"><span class="cd-num" data-cd="seg">00</span><span class="cd-lbl">Segundos</span></div>
+      </div>
+    {% elif fase == "en_curso" %}
+      <p>El Festival está en curso.</p>
+    {% else %}
+      <p>Esta edición del Festival terminó.</p>
+    {% endif %}
+
+    <a class="btn btn-hero" href="{% url 'festival:categorias' edicion.anio %}"><i class="ph-fill ph-check-fat" aria-hidden="true"></i> Ver votaciones</a>
+  </section>
+
+  <h2 class="seccion-titulo">Categorías</h2>
+  {% if categorias %}
+    <div class="cat-grid">
+      {% for categoria in categorias %}
+        <a class="cat-tile" href="{% url 'festival:categoria' categoria.pk %}">
+          <span class="cat-ico" aria-hidden="true"><i class="ph-fill {{ categoria|icono_categoria }}"></i></span>
+          <strong>{{ categoria.nombre }}</strong>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="muted vacio">Aún no hay categorías publicadas.</p>
+  {% endif %}
+{% else %}
+  <h1 class="vista-titulo serif">Festival de la Leyenda Vallenata</h1>
+  <p class="vista-sub">No hay una edición activa en este momento.</p>
+  <a class="btn btn-ghost btn-block" href="{% url 'festival:ediciones' %}">Ver ediciones</a>
+{% endif %}
+{% endblock %}

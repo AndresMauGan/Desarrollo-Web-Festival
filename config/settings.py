@@ -111,6 +111,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # ---------------------------------------------------------------------------
 AUTH_USER_MODEL = "cuentas.Usuario"
 
+LOGIN_URL = "cuentas:login"
+LOGIN_REDIRECT_URL = "festival:inicio"
+LOGOUT_REDIRECT_URL = "festival:inicio"
+
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},

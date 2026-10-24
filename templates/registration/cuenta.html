@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% comment %}Cuenta activa (CU-01): datos de la sesión y cierre de sesión por POST.{% endcomment %}
+
+{% block titulo %}Tu cuenta{% endblock %}
+
+{% block contenido %}
+<div class="angosto">
+<h1 class="vista-titulo serif">Tu cuenta</h1>
+<p class="vista-sub">Sesión iniciada.</p>
+
+<dl class="datos">
+  <dt>Nombre para mostrar</dt><dd>{{ user.nombre_para_mostrar }}</dd>
+  <dt>Correo</dt><dd>{{ user.email }}</dd>
+  <dt>Tipo de cuenta</dt>
+  <dd>{% if user.is_staff %}Personal de la organización
+      <span class="dd-nota">Las cuentas del personal no votarán (RN-08, pendiente de la Fundación).</span>
+    {% else %}Público{% endif %}</dd>
+  <dt>Correo verificado</dt>
+  <dd>{% if user.correo_verificado %}Sí{% else %}No{% endif %}
+    <span class="dd-nota">La verificación del correo está pendiente de la decisión de la Fundación (P-01).</span></dd>
+</dl>
+
+<div class="acciones">
+  {% if user.is_staff %}<a class="btn btn-primary btn-block" href="{% url 'admin:index' %}">Ir a la administración</a>{% endif %}
+  <form method="post" action="{% url 'cuentas:logout' %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-ghost btn-block">Cerrar sesión</button>
+  </form>
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block titulo %}Página no encontrada{% endblock %}
+
+{% block contenido %}
+<div class="angosto">
+<h1 class="vista-titulo serif">No encontramos esta página</h1>
+<p class="vista-sub">Puede que no exista o que todavía no esté publicada.</p>
+<div class="acciones">
+  <a class="btn btn-primary btn-block" href="{% url 'festival:inicio' %}">Ir al inicio</a>
+  <a class="btn btn-ghost btn-block" href="{% url 'festival:ediciones' %}">Ver ediciones</a>
+</div>
+</div>
+{% endblock %}

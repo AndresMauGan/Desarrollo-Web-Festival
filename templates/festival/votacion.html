@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load festival_extras %}
+{% comment %}
+Pantalla 6 · Detalle de la votación (CU-02): horario, reglas provisionales y opciones publicadas.
+Sin conteos (RN-06, pendiente) y sin botón de voto: el registro de votos llega en una entrega posterior.
+{% endcomment %}
+
+{% block titulo %}{{ votacion.nombre }}{% endblock %}
+
+{% block contenido %}
+<a class="volver" href="{% url 'festival:categoria' votacion.categoria.pk %}"><i class="ph ph-caret-left" aria-hidden="true"></i> {{ votacion.categoria.nombre }}</a>
+<h1 class="vista-titulo serif">{{ votacion.nombre }}</h1>
+<p class="vista-sub">{{ votacion.get_ronda_display }} · {{ votacion.categoria.edicion.anio }} {% estado_votacion votacion %}</p>
+
+<div class="detalle">
+<dl class="datos">
+  <dt>Abre</dt><dd>{{ votacion.abre_en|fecha_hora_co }}</dd>
+  <dt>Cierra</dt><dd>{{ votacion.cierra_en|fecha_hora_co }}</dd>
+  <dt>Límite de votos <span class="etiqueta-provisional">Provisional</span></dt>
+  <dd>{{ votacion.limite_votos_por_usuario }} {% if votacion.limite_votos_por_usuario == 1 %}voto{% else %}votos{% endif %} por persona
+    <span class="dd-nota">Pendiente de la decisión de la Fundación (P-03).</span></dd>
+  <dt>Resultados <span class="etiqueta-provisional">Provisional</span></dt>
+  <dd>{{ votacion.get_visibilidad_resultados_display }}
+    <span class="dd-nota">Pendiente de la decisión de la Fundación (P-05).</span></dd>
+</dl>
+
+<section aria-labelledby="titulo-opciones">
+<h2 class="seccion-titulo" id="titulo-opciones">Opciones</h2>
+{% if opciones %}
+  <div class="lista">
+    {% for opcion in opciones %}
+      <div class="fila">
+        <span class="inicial" aria-hidden="true">{% if opcion.foto %}<img src="{{ opcion.foto.url }}" alt="">{% else %}{{ opcion.nombre|slice:":1" }}{% endif %}</span>
+        <div class="fila-info">
+          <strong>{{ opcion.nombre }}</strong>
+          <span>{{ opcion.get_tipo_display }}{% if opcion.integrantes %} · {{ opcion.integrantes }}{% endif %}</span>
+          {% if opcion.descripcion %}<p class="muted">{{ opcion.descripcion }}</p>{% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="muted vacio">Esta votación aún no tiene opciones publicadas.</p>
+{% endif %}
+
+<p class="pendiente" style="margin-top:1.25rem"><i class="ph-fill ph-hourglass" aria-hidden="true"></i><span>El registro de votos todavía no está habilitado.</span></p>
+</section>
+</div>
+{% endblock %}

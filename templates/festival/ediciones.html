@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load festival_extras %}
+{% comment %}Ediciones: lista (CU-02).{% endcomment %}
+
+{% block titulo %}Ediciones{% endblock %}
+
+{% block contenido %}
+<h1 class="vista-titulo serif">Ediciones</h1>
+<p class="vista-sub">Elige una edición para ver sus datos y categorías.</p>
+
+{% if ediciones %}
+  <div class="lista">
+    {% for edicion in ediciones %}
+      <a class="fila" href="{% url 'festival:edicion' edicion.anio %}">
+        <span class="cat-ico" aria-hidden="true"><i class="ph-fill ph-calendar-blank"></i></span>
+        <div class="fila-info">
+          <strong>{{ edicion.nombre }}</strong>
+          <span>{% rango_fechas edicion.fecha_inicio edicion.fecha_fin %}</span>
+        </div>
+        {% if edicion.activa %}<span class="badge badge-activa">Activa</span>{% endif %}
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="muted vacio">Aún no hay ediciones registradas.</p>
+{% endif %}
+{% endblock %}

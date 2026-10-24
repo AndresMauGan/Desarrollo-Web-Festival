@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load festival_extras %}
+{% comment %}Pantalla 5 · Votaciones de una categoría (CU-02), con su estado. Las votaciones en borrador no se muestran.{% endcomment %}
+
+{% block titulo %}{{ categoria.nombre }}{% endblock %}
+
+{% block contenido %}
+<a class="volver" href="{% url 'festival:categorias' categoria.edicion.anio %}"><i class="ph ph-caret-left" aria-hidden="true"></i> Categorías</a>
+<h1 class="vista-titulo serif">{{ categoria.nombre }}</h1>
+<p class="vista-sub">{{ categoria.edicion.nombre }}</p>
+
+{% if votaciones %}
+  <div class="lista">
+    {% for votacion in votaciones %}
+      <a class="fila" href="{% url 'festival:votacion' votacion.pk %}">
+        <div class="fila-info">
+          <strong>{{ votacion.nombre }}</strong>
+          <span>
+            {% if votacion.estado == "programada" %}Abre el {{ votacion.abre_en|fecha_hora_co }}
+            {% elif votacion.estado == "cerrada" %}Cerró el {{ votacion.cierra_en|fecha_hora_co }}
+            {% else %}Cierra el {{ votacion.cierra_en|fecha_hora_co }}{% endif %}
+          </span>
+        </div>
+        {% estado_votacion votacion %}
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="muted vacio">Esta categoría aún no tiene votaciones disponibles.</p>
+{% endif %}
+{% endblock %}

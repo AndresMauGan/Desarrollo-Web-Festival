@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load festival_extras %}
+{% comment %}Pantalla 4 · Categorías de una edición (CU-02): solo las publicadas.{% endcomment %}
+
+{% block titulo %}Categorías {{ edicion.anio }}{% endblock %}
+
+{% block contenido %}
+<a class="volver" href="{% url 'festival:edicion' edicion.anio %}"><i class="ph ph-caret-left" aria-hidden="true"></i> {{ edicion.nombre }}</a>
+<h1 class="vista-titulo serif">Categorías</h1>
+<p class="vista-sub">Elige una para ver sus votaciones.</p>
+
+{% if categorias %}
+  <div class="lista">
+    {% for categoria in categorias %}
+      <a class="fila" href="{% url 'festival:categoria' categoria.pk %}">
+        <span class="cat-ico" aria-hidden="true"><i class="ph-fill {{ categoria|icono_categoria }}"></i></span>
+        <div class="fila-info">
+          <strong>{{ categoria.nombre }}</strong>
+          <span>{{ categoria.get_familia_display }}{% if categoria.nivel %} · {{ categoria.nivel }}{% endif %} · {{ categoria.votaciones_publicas }} {% if categoria.votaciones_publicas == 1 %}votación{% else %}votaciones{% endif %}</span>
+        </div>
+        <i class="ph ph-caret-right" aria-hidden="true"></i>
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="muted vacio">Esta edición aún no tiene categorías publicadas.</p>
+{% endif %}
+{% endblock %}
