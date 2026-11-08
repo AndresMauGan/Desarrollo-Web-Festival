@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% comment %}Pantalla 8 · Confirmación del voto (CU-03): segundo POST con CSRF; el voto es irreversible (RN-02).{% endcomment %}
+
+{% block titulo %}Confirma tu voto{% endblock %}
+
+{% block contenido %}
+<div class="angosto">
+<a class="volver" href="{% url 'votos:votar' categoria.pk %}"><i class="ph ph-caret-left" aria-hidden="true"></i> Cambiar opción</a>
+<h1 class="vista-titulo serif">Confirma tu voto</h1>
+<p class="vista-sub">{{ categoria.nombre }} · {{ categoria.edicion.nombre }}</p>
+
+<dl class="datos">
+  <dt>Votación</dt><dd>{{ opcion.votacion.nombre }}</dd>
+  <dt>Tu elección</dt><dd>{{ opcion.nombre }}<span class="dd-nota">{{ opcion.get_tipo_display }}</span></dd>
+</dl>
+
+<p class="irreversible"><i class="ph-fill ph-warning-octagon" aria-hidden="true"></i> Es irreversible: no podrás cambiar tu voto ni votar otra vez en esta categoría.</p>
+
+<form method="post" action="{% url 'votos:confirmar' categoria.pk %}">
+  {% csrf_token %}
+  <input type="hidden" name="opcion" value="{{ opcion.pk }}">
+  <div class="acciones">
+    <button type="submit" class="btn btn-danger btn-block">Confirmar voto</button>
+    <a class="btn btn-ghost btn-block" href="{% url 'votos:votar' categoria.pk %}">Cancelar</a>
+  </div>
+</form>
+</div>
+{% endblock %}

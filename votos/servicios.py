@@ -63,6 +63,27 @@ def voto_en_categoria(usuario, categoria):
             .select_related("opcion", "votacion", "categoria", "edicion").first())
 
 
+def verificar_categoria(categoria, ahora=None):
+    """Pasos 2 y 3 para una categoría publicada: lanza VotoRechazado si hoy no se puede votar en ella.
+    Lo usan el servicio y las páginas, para que ambos apliquen la misma regla."""
+    activa = edicion_activa()
+    if not categoria.admite_voto_publico or activa is None or categoria.edicion_id != activa.pk:
+        raise VotoRechazado("Esta categoría no está habilitada para el voto del público.", 403,
+                            auditar="Voto rechazado: categoría no habilitada")
+    if not votaciones_abiertas(categoria, ahora).exists():
+        raise VotoRechazado("Esta categoría no tiene votaciones abiertas en este momento.", 403,
+                            auditar="Voto rechazado: votación cerrada o fuera de horario")
+
+
+def se_puede_votar(categoria):
+    """Versión sin excepción de verificar_categoria, para las plantillas."""
+    try:
+        verificar_categoria(categoria)
+    except VotoRechazado:
+        return False
+    return True
+
+
 def auditar(usuario, accion, entidad, detalle="", ip=""):
     usuario = usuario if getattr(usuario, "is_authenticated", False) else None
     RegistroAuditoria.objects.create(usuario=usuario, accion=accion[:100], entidad_afectada=entidad[:100],
@@ -101,16 +122,10 @@ def _validar_y_guardar(usuario, categoria_id, opcion_id, ip, navegador):
     categoria = Categoria.objects.select_related("edicion").filter(pk=categoria_id, publicada=True).first()
     if categoria is None:
         raise VotoRechazado("Esta categoría no existe o no está publicada.", 404)
-    activa = edicion_activa()
-    if not categoria.admite_voto_publico or activa is None or categoria.edicion_id != activa.pk:
-        raise VotoRechazado("Esta categoría no está habilitada para el voto del público.", 403,
-                            auditar="Voto rechazado: categoría no habilitada")
-
-    # 3. Votación abierta y dentro de su horario (RN-03)
+    # 2 (resto) y 3. Admite voto del público, es de la edición activa y tiene una votación abierta
+    # dentro de su horario según el reloj del servidor (RN-03)
     ahora = timezone.now()
-    if not votaciones_abiertas(categoria, ahora).exists():
-        raise VotoRechazado("Esta categoría no tiene votaciones abiertas en este momento.", 403,
-                            auditar="Voto rechazado: votación cerrada o fuera de horario")
+    verificar_categoria(categoria, ahora)
 
     # 4. Opción publicada, activa y de una votación abierta de esa categoría
     try:
