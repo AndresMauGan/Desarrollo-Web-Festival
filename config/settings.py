@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     # Aplicaciones del proyecto
     "cuentas",   # Usuario, registro, inicio y cierre de sesión (CU-01)
     "festival",  # Edición, Categoría, Votación y Opción; vistas públicas (CU-02, CU-04)
-    "votos",     # Voto y RegistroAuditoria: solo estructura en esta entrega (CU-03, CU-06)
+    "votos",     # Voto, registro del voto, «Mis votos» y RegistroAuditoria (CU-03, CU-06)
 ]
 
 MIDDLEWARE = [
