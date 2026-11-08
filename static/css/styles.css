@@ -176,6 +176,41 @@ a.fila:active { transform: scale(0.985); }
 .toast.error { background: var(--red); }
 .toast.oculto { opacity: 0; transform: translateY(1rem); }
 
+/* ---------- Votación (CU-03): opciones elegibles, de prototipo/styles.css ---------- */
+.sin-borde { border: 0; margin: 0; padding: 0; min-width: 0; }
+.subevento .seccion-titulo { margin-top: 1.5rem; }
+.opcion { position: relative; display: flex; align-items: center; gap: 0.875rem; padding: 1rem; background: var(--card); border: 2px solid var(--stone-line); border-radius: 1.25rem; cursor: pointer; transition: border-color 160ms var(--ease-out), background-color 160ms, transform 120ms var(--ease-out); }
+.opcion:active { transform: scale(0.985); }
+.opcion:has(input:checked) { border-color: var(--amber); background: #fffbeb; }
+.opcion:has(input:focus-visible) { outline: 3px solid var(--amber); outline-offset: 2px; }
+.opcion:has(input:checked) .inicial { background: var(--amber); color: #fff; }
+.opcion-info { flex: 1; min-width: 0; }
+.opcion-info strong { display: block; }
+.opcion-info .muted { font-size: 0.8125rem; }
+.opcion label { cursor: pointer; }
+.opcion label::after { content: ''; position: absolute; inset: 0; } /* la etiqueta cubre toda la tarjeta */
+.radio-visual { flex: none; width: 2rem; height: 2rem; border-radius: 50%; border: 2.5px solid #a8a29e; display: grid; place-items: center; transition: border-color 160ms, background-color 160ms; }
+.radio-visual::after { content: ''; width: 1rem; height: 1rem; border-radius: 50%; background: #fff; transform: scale(0); transition: transform 220ms var(--spring); }
+.opcion input:checked ~ .radio-visual { border-color: var(--amber); background: var(--amber); }
+.opcion input:checked ~ .radio-visual::after { transform: scale(1); }
+
+/* Confirmación irreversible y comprobante */
+.btn-danger { background: var(--red); color: #fff; }
+.btn-danger:hover { background: #991b1b; }
+.irreversible { display: flex; align-items: flex-start; gap: 0.5rem; margin: 1rem 0 0; color: var(--red); font-weight: 800; }
+.irreversible i { font-size: 1.25rem; flex: none; }
+.exito { background: linear-gradient(160deg, #065f46, var(--emerald)); color: #fff; border-radius: 1.5rem; padding: 1.5rem 1.25rem; text-align: center; }
+.exito-ico { width: 4rem; height: 4rem; margin: 0 auto 0.75rem; border-radius: 50%; display: grid; place-items: center; font-size: 2.25rem; background: rgba(255, 255, 255, 0.18); animation: pop 450ms var(--spring) both; }
+@keyframes pop { from { transform: scale(0.4); opacity: 0; } to { transform: none; opacity: 1; } }
+.exito h1, .exito h2 { font-size: 1.375rem; font-weight: 800; color: #fff; }
+.exito p { color: #d1fae5; font-size: 0.9375rem; margin-top: 0.25rem; }
+.comprobante { margin-top: 1rem; padding: 1rem 1.25rem; background: var(--stone-bg); border: 1px solid var(--stone-line); border-radius: 1.25rem; }
+.comprobante h2, .comprobante h3 { font-size: 0.9375rem; font-weight: 800; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+.comprobante dl { margin: 0; }
+.comprobante dt { font-size: 0.75rem; font-weight: 700; color: var(--stone-mid); margin-top: 0.625rem; }
+.comprobante dd { margin: 0.125rem 0 0; font-weight: 700; font-size: 0.9375rem; }
+.mono { font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace; font-size: 0.8125rem !important; word-break: break-all; font-weight: 600 !important; }
+
 /* ---------- Columna angosta para formularios y páginas cortas ---------- */
 .angosto { max-width: 30rem; margin: 0 auto; }
 

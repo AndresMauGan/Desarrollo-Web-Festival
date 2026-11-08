@@ -12,6 +12,7 @@ admin.site.index_title = "Gestión de ediciones, categorías, votaciones y opcio
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("cuentas/", include("cuentas.urls")),
+    path("votar/", include("votos.urls")),
     path("", include("festival.urls")),
 ]
 

@@ -13,7 +13,7 @@
   <dt>Correo</dt><dd>{{ user.email }}</dd>
   <dt>Tipo de cuenta</dt>
   <dd>{% if user.is_staff %}Personal de la organización
-      <span class="dd-nota">Las cuentas del personal no votarán (RN-08, pendiente de la Fundación).</span>
+      <span class="dd-nota">Si el personal puede votar está pendiente de la decisión de la Fundación (RN-08); por ahora el sistema no lo impide.</span>
     {% else %}Público{% endif %}</dd>
   <dt>Correo verificado</dt>
   <dd>{% if user.correo_verificado %}Sí{% else %}No{% endif %}
@@ -21,6 +21,7 @@
 </dl>
 
 <div class="acciones">
+  <a class="btn btn-primary btn-block" href="{% url 'votos:mis_votos' %}"><i class="ph-fill ph-seal-check" aria-hidden="true"></i> Mis votos</a>
   {% if user.is_staff %}<a class="btn btn-primary btn-block" href="{% url 'admin:index' %}">Ir a la administración</a>{% endif %}
   <form method="post" action="{% url 'cuentas:logout' %}">
     {% csrf_token %}

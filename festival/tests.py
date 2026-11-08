@@ -151,15 +151,13 @@ class ModelosTests(DatosBase):
     # Reglas pendientes (observación 2 del docente): valores por defecto en reglas.py, marcados en el admin
     def test_valores_por_defecto_salen_de_reglas(self):
         vacia = self.nueva_votacion()
-        self.assertEqual(vacia.limite_votos_por_usuario, reglas.LIMITE_VOTOS_POR_DEFECTO)
         self.assertEqual(vacia.visibilidad_resultados, reglas.VISIBILIDAD_RESULTADOS_POR_DEFECTO)
-        self.assertIn("Pendiente de validación (P-03)", Votacion._meta.get_field("limite_votos_por_usuario").help_text)
         self.assertIn("Pendiente de validación (P-05)", Votacion._meta.get_field("visibilidad_resultados").help_text)
 
-    def test_limite_minimo_uno(self):
-        self.votacion.limite_votos_por_usuario = 0
-        with self.assertRaises(ValidationError):
-            self.votacion.full_clean()
+    def test_rn01_definida_sin_limite_por_votacion(self):
+        # Entrega 3: RN-01 es un voto por usuario, categoría y edición; la votación ya no tiene límite propio.
+        self.assertEqual(reglas.VOTOS_POR_USUARIO_CATEGORIA_EDICION, 1)
+        self.assertNotIn("limite_votos_por_usuario", {campo.name for campo in Votacion._meta.get_fields()})
 
 
 class AdminTests(DatosBase):
@@ -186,7 +184,7 @@ class AdminTests(DatosBase):
             "categoria": v.categoria_id, "nombre": v.nombre, "ronda": v.ronda, "estado": estado,
             "abre_en_0": local(v.abre_en).strftime("%d/%m/%Y"), "abre_en_1": local(v.abre_en).strftime("%H:%M:%S"),
             "cierra_en_0": local(v.cierra_en).strftime("%d/%m/%Y"), "cierra_en_1": local(v.cierra_en).strftime("%H:%M:%S"),
-            "limite_votos_por_usuario": 1, "visibilidad_resultados": "al_cierre",
+            "visibilidad_resultados": "al_cierre",
             "opciones-TOTAL_FORMS": 2, "opciones-INITIAL_FORMS": 2, "opciones-MIN_NUM_FORMS": 0, "opciones-MAX_NUM_FORMS": 1000,
         }
         for i, opcion in enumerate([self.publicada, self.sin_publicar]):
@@ -263,14 +261,27 @@ class VistasPublicasTests(DatosBase):
 
     def test_detalle_marca_reglas_pendientes_como_provisionales(self):
         respuesta = self.client.get(f"/votaciones/{self.votacion.pk}/")
-        self.assertContains(respuesta, "Provisional", count=2)
-        self.assertContains(respuesta, "(P-03)")
+        # Solo la visibilidad sigue pendiente (P-05); el límite de votos (RN-01) ya está definido.
+        self.assertContains(respuesta, "Provisional", count=1)
         self.assertContains(respuesta, "(P-05)")
+        self.assertNotContains(respuesta, "(P-03)")
+        self.assertContains(respuesta, "RN-01")
 
-    def test_detalle_sin_conteos_ni_boton_de_voto(self):
+    def test_detalle_sin_conteos_y_sin_acceso_a_votar_si_no_esta_abierta(self):
+        # La votación de DatosBase está programada: no hay votación abierta en la categoría.
         respuesta = self.client.get(f"/votaciones/{self.votacion.pk}/")
         self.assertNotContains(respuesta, "<form")
-        self.assertContains(respuesta, "El registro de votos todavía no está habilitado.")
+        self.assertNotContains(respuesta, "Votar en esta categoría")
+        self.assertContains(respuesta, "La votación de esta categoría no está abierta en este momento.")
+
+    def test_detalle_con_acceso_a_votar_si_esta_abierta_en_su_horario(self):
+        self.sin_publicar.publicada = True
+        self.sin_publicar.save()
+        ahora = timezone.now()
+        Votacion.objects.filter(pk=self.votacion.pk).update(estado="abierta", abre_en=ahora - timedelta(hours=1), cierra_en=ahora + timedelta(hours=1))
+        for url in (f"/votaciones/{self.votacion.pk}/", f"/categorias/{self.categoria.pk}/"):
+            with self.subTest(url=url):
+                self.assertContains(self.client.get(url), f'href="/votar/categoria/{self.categoria.pk}/"')
 
     def test_formato_colombiano_de_fecha_y_hora(self):
         apertura = timezone.make_aware(timezone.datetime(2027, 5, 1, 19, 30))
@@ -291,5 +302,11 @@ class CargarDatosPruebaTests(TestCase):
         self.assertEqual(list(Edicion.objects.order_by("anio").values_list("anio", flat=True)), [2026, 2027])
         self.assertEqual(Categoria.objects.filter(edicion__anio=2027).count(), 4)
         self.assertEqual(set(Votacion.objects.values_list("estado", flat=True)), set(Votacion.Estado.values))
-        self.assertEqual(Opcion.objects.count(), 14)
+        self.assertEqual(Opcion.objects.count(), 18)
+        # Horario de demostración: las votaciones abiertas están dentro de su horario al cargar (RN-03)
+        ahora = timezone.now()
+        abiertas = Votacion.objects.filter(estado="abierta")
+        self.assertEqual(abiertas.count(), 3)
+        self.assertTrue(all(v.abre_en <= ahora < v.cierra_en for v in abiertas))
+        self.assertEqual(abiertas.filter(categoria__nombre="Acordeonera Mayor").count(), 2)
         self.assertTrue(all("Ficti" in nombre for nombre in Opcion.objects.values_list("nombre", flat=True)))

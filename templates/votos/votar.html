@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load festival_extras %}
+{% comment %}
+Votación de una categoría (CU-03), pantallas 6 y 7 del documento.
+Una sola opción por categoría y edición (RN-01): todas las opciones comparten el mismo campo «opcion»,
+aunque estén en votaciones (subeventos) distintas.
+{% endcomment %}
+
+{% block titulo %}Votar · {{ categoria.nombre }}{% endblock %}
+
+{% block contenido %}
+<a class="volver" href="{% url 'festival:categoria' categoria.pk %}"><i class="ph ph-caret-left" aria-hidden="true"></i> {{ categoria.nombre }}</a>
+<h1 class="vista-titulo serif">Votar · {{ categoria.nombre }}</h1>
+<p class="vista-sub">{{ categoria.edicion.nombre }}</p>
+
+{% if voto %}
+  <div class="exito">
+    <div class="exito-ico" aria-hidden="true"><i class="ph-fill ph-check-circle"></i></div>
+    <h2>Ya votaste en esta categoría</h2>
+    <p>Elegiste a {{ voto.opcion.nombre }} en «{{ voto.votacion.nombre }}».</p>
+  </div>
+  <div class="comprobante">
+    <h3><i class="ph-fill ph-seal-check" aria-hidden="true"></i> Comprobante</h3>
+    <dl>
+      <dt>Código</dt><dd class="mono">{{ voto.codigo_comprobante }}</dd>
+      <dt>Fecha y hora</dt><dd>{{ voto.fecha_hora|fecha_hora_co }}</dd>
+    </dl>
+  </div>
+  <div class="acciones">
+    <a class="btn btn-primary btn-block" href="{% url 'votos:comprobante' voto.pk %}">Ver comprobante completo</a>
+    <a class="btn btn-ghost btn-block" href="{% url 'votos:mis_votos' %}">Ver mis votos</a>
+  </div>
+
+{% elif motivo %}
+  <p class="pendiente"><i class="ph-fill ph-hourglass" aria-hidden="true"></i><span>{{ motivo }}</span></p>
+  <div class="acciones">
+    <a class="btn btn-ghost btn-block" href="{% url 'festival:categorias_actuales' %}">Ver otras categorías</a>
+  </div>
+
+{% else %}
+  <p class="pendiente"><i class="ph-fill ph-info" aria-hidden="true"></i><span>Puedes elegir una sola opción en esta categoría, aunque tenga varias votaciones abiertas. Después de confirmar no podrás cambiarla.</span></p>
+
+  <form method="post" action="{% url 'votos:votar' categoria.pk %}" novalidate>
+    {% csrf_token %}
+    <fieldset class="sin-borde">
+      <legend class="sr">Elige una opción</legend>
+      {% for votacion, opciones in grupos %}
+        <section class="subevento" aria-labelledby="subevento-{{ votacion.pk }}">
+          <h2 class="seccion-titulo" id="subevento-{{ votacion.pk }}">{{ votacion.nombre }}</h2>
+          <p class="muted" style="margin:-0.5rem 0 0.75rem">{{ votacion.get_ronda_display }} · cierra el {{ votacion.cierra_en|fecha_hora_co }}</p>
+          <div class="lista">
+            {% for opcion in opciones %}
+              <div class="opcion">
+                <input type="radio" class="sr" id="opcion-{{ opcion.pk }}" name="opcion" value="{{ opcion.pk }}"{% if form.opcion.value|stringformat:"s" == opcion.pk|stringformat:"s" %} checked{% endif %}>
+                <span class="inicial" aria-hidden="true">{% if opcion.foto %}<img src="{{ opcion.foto.url }}" alt="">{% else %}{{ opcion.nombre|slice:":1" }}{% endif %}</span>
+                <span class="opcion-info">
+                  <label for="opcion-{{ opcion.pk }}"><strong>{{ opcion.nombre }}</strong><span class="muted">{{ opcion.get_tipo_display }}{% if opcion.integrantes %} · {{ opcion.integrantes }}{% endif %}</span></label>
+                </span>
+                <span class="radio-visual" aria-hidden="true"></span>
+              </div>
+            {% endfor %}
+          </div>
+        </section>
+      {% endfor %}
+    </fieldset>
+    {% if form.opcion.errors %}<p class="error" role="alert">{{ form.opcion.errors.0 }}</p>{% endif %}
+    <div class="acciones">
+      <button type="submit" class="btn btn-primary btn-block">Continuar</button>
+    </div>
+  </form>
+{% endif %}
+{% endblock %}

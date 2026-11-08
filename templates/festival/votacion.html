@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% load festival_extras %}
 {% comment %}
-Pantalla 6 · Detalle de la votación (CU-02): horario, reglas provisionales y opciones publicadas.
-Sin conteos (RN-06, pendiente) y sin botón de voto: el registro de votos llega en una entrega posterior.
+Pantalla 6 · Detalle de la votación (CU-02): horario, reglas y opciones publicadas.
+Sin conteos (RN-06, pendiente). El voto se emite en la página de votación de la categoría (votos:votar).
 {% endcomment %}
 
 {% block titulo %}{{ votacion.nombre }}{% endblock %}
@@ -16,9 +16,9 @@ Sin conteos (RN-06, pendiente) y sin botón de voto: el registro de votos llega 
 <dl class="datos">
   <dt>Abre</dt><dd>{{ votacion.abre_en|fecha_hora_co }}</dd>
   <dt>Cierra</dt><dd>{{ votacion.cierra_en|fecha_hora_co }}</dd>
-  <dt>Límite de votos <span class="etiqueta-provisional">Provisional</span></dt>
-  <dd>{{ votacion.limite_votos_por_usuario }} {% if votacion.limite_votos_por_usuario == 1 %}voto{% else %}votos{% endif %} por persona
-    <span class="dd-nota">Pendiente de la decisión de la Fundación (P-03).</span></dd>
+  <dt>Límite de votos</dt>
+  <dd>Un voto por persona en esta categoría
+    <span class="dd-nota">Aunque la categoría tenga varias votaciones, solo se elige una opción por edición (RN-01).</span></dd>
   <dt>Resultados <span class="etiqueta-provisional">Provisional</span></dt>
   <dd>{{ votacion.get_visibilidad_resultados_display }}
     <span class="dd-nota">Pendiente de la decisión de la Fundación (P-05).</span></dd>
@@ -43,7 +43,13 @@ Sin conteos (RN-06, pendiente) y sin botón de voto: el registro de votos llega 
   <p class="muted vacio">Esta votación aún no tiene opciones publicadas.</p>
 {% endif %}
 
-<p class="pendiente" style="margin-top:1.25rem"><i class="ph-fill ph-hourglass" aria-hidden="true"></i><span>El registro de votos todavía no está habilitado.</span></p>
+{% if se_puede_votar %}
+  <div class="acciones">
+    <a class="btn btn-primary btn-block" href="{% url 'votos:votar' votacion.categoria.pk %}"><i class="ph-fill ph-check-fat" aria-hidden="true"></i> Votar en esta categoría</a>
+  </div>
+{% else %}
+  <p class="pendiente" style="margin-top:1.25rem"><i class="ph-fill ph-hourglass" aria-hidden="true"></i><span>La votación de esta categoría no está abierta en este momento.</span></p>
+{% endif %}
 </section>
 </div>
 {% endblock %}
