@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from . import api, views
 
 app_name = "festival"
 
@@ -12,4 +12,6 @@ urlpatterns = [
     path("categorias/", views.categorias_actuales, name="categorias_actuales"),
     path("categorias/<int:pk>/", views.CategoriaDetailView.as_view(), name="categoria"),
     path("votaciones/<int:pk>/", views.VotacionDetailView.as_view(), name="votacion"),
+    # API de solo lectura en JSON (festival/api.py)
+    path("api/categorias/", api.categorias, name="api_categorias"),
 ]
