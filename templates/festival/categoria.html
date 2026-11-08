@@ -9,6 +9,10 @@
 <h1 class="vista-titulo serif">{{ categoria.nombre }}</h1>
 <p class="vista-sub">{{ categoria.edicion.nombre }}</p>
 
+{% if se_puede_votar %}
+  <a class="btn btn-primary btn-block" style="margin-bottom:1.25rem" href="{% url 'votos:votar' categoria.pk %}"><i class="ph-fill ph-check-fat" aria-hidden="true"></i> Votar en esta categoría</a>
+{% endif %}
+
 {% if votaciones %}
   <div class="lista">
     {% for votacion in votaciones %}

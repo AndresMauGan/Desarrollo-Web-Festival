@@ -4,9 +4,14 @@ y opciones con nombres claramente ficticios (ninguna persona real).
 
 Se puede ejecutar varias veces: actualiza los registros existentes en lugar de duplicarlos.
 Cada registro pasa por full_clean(), así que respeta las mismas validaciones del modelo (RN-11 incluida).
+
+Horario de demostración: las votaciones abiertas se dejan abiertas desde una hora antes hasta 30 días
+después del momento de la carga. Así se puede votar hoy, porque el servidor exige que la votación esté
+dentro de su horario (RN-03); las fechas de la edición siguen siendo las de 2027.
+No crea usuarios: los votantes se registran desde la interfaz y el personal con createsuperuser.
 """
 
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
@@ -37,6 +42,8 @@ CATEGORIAS = [
     dict(nombre="Piquería Mayor", familia=Familia.PIQUERIA, nivel="Mayor", orden=4),
 ]
 
+ABIERTA_HOY = None  # horario relativo al momento de la carga (ver la nota al inicio)
+
 # (categoría, nombre, ronda, estado, abre, cierra, opciones)
 # Cada opción: (nombre, tipo, publicada, estado). Todos los nombres son inventados.
 VOTACIONES = {
@@ -49,12 +56,17 @@ VOTACIONES = {
         ("Rey Vallenato Profesional", "Eliminatoria Rey Vallenato Profesional", Ronda.ELIMINATORIA, Estado.BORRADOR,
          hora(2027, 4, 28, 9), hora(2027, 4, 28, 18),
          [("Acordeonero Ficticio Cuatro", Tipo.PERSONA, False, "activa")]),
+        # Dos subeventos abiertos en la misma categoría: se puede elegir una sola opción entre ambos (RN-01, CP-02)
         ("Acordeonera Mayor", "Semifinal Acordeonera Mayor", Ronda.SEMIFINAL, Estado.ABIERTA,
-         hora(2027, 4, 30, 14), hora(2027, 4, 30, 22),
+         ABIERTA_HOY, ABIERTA_HOY,
          [("Acordeonera Ficticia Uno", Tipo.PERSONA, True, "activa"),
           ("Acordeonera Ficticia Dos", Tipo.PERSONA, True, "activa"),
           ("Acordeonera Ficticia Tres", Tipo.PERSONA, True, "retirada"),
           ("Acordeonera Ficticia Cuatro", Tipo.PERSONA, False, "activa")]),
+        ("Acordeonera Mayor", "Semifinal Acordeonera Mayor · Grupo B", Ronda.SEMIFINAL, Estado.ABIERTA,
+         ABIERTA_HOY, ABIERTA_HOY,
+         [("Acordeonera Ficticia Cinco", Tipo.PERSONA, True, "activa"),
+          ("Acordeonera Ficticia Seis", Tipo.PERSONA, True, "activa")]),
         ("Canción Inédita", "Final Canción Inédita", Ronda.FINAL, Estado.PAUSADA,
          hora(2027, 4, 30, 16), hora(2027, 4, 30, 23),
          [("«Río de Ejemplo», de Autor Ficticio A", Tipo.OBRA, True, "activa"),
@@ -63,6 +75,11 @@ VOTACIONES = {
          hora(2027, 4, 29, 15), hora(2027, 4, 29, 21),
          [("Pareja Repentista Ficticia A", Tipo.GRUPO, True, "activa"),
           ("Pareja Repentista Ficticia B", Tipo.GRUPO, True, "activa")]),
+        # Segunda categoría con votación abierta: votar en otra categoría sí se permite (CP-03)
+        ("Piquería Mayor", "Final Piquería Mayor", Ronda.FINAL, Estado.ABIERTA,
+         ABIERTA_HOY, ABIERTA_HOY,
+         [("Pareja Repentista Ficticia C", Tipo.GRUPO, True, "activa"),
+          ("Pareja Repentista Ficticia D", Tipo.GRUPO, True, "activa")]),
     ],
     2026: [
         ("Rey Vallenato Profesional", "Final Rey Vallenato Profesional 2026", Ronda.FINAL, Estado.CERRADA,
@@ -89,6 +106,7 @@ class Command(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **options):
         conteo = {"ediciones": 0, "categorias": 0, "votaciones": 0, "opciones": 0}
+        ahora = timezone.now()
 
         for datos in EDICIONES:
             edicion = guardar(Edicion, {"anio": datos["anio"]}, datos)
@@ -103,6 +121,8 @@ class Command(BaseCommand):
                 conteo["categorias"] += 1
 
             for cat_nombre, nombre, ronda, estado, abre, cierra, opciones in VOTACIONES[edicion.anio]:
+                if abre is ABIERTA_HOY:
+                    abre, cierra = ahora - timedelta(hours=1), ahora + timedelta(days=30)
                 # Primero se guarda sin abrir y con sus opciones; después se pone el estado final,
                 # así «abierta» pasa por la validación de RN-11 como en el admin.
                 existente = Votacion.objects.filter(categoria=categorias[cat_nombre], nombre=nombre).first()

@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% load festival_extras %}
 {% comment %}
-Pantalla 6 · Detalle de la votación (CU-02): horario, reglas provisionales y opciones publicadas.
-Sin conteos (RN-06, pendiente) y sin botón de voto: el registro de votos llega en una entrega posterior.
+Pantalla 6 · Detalle de la votación (CU-02): horario, reglas y opciones publicadas.
+Sin conteos (RN-06, pendiente). El voto se emite en la página de votación de la categoría (votos:votar).
 {% endcomment %}
 
 {% block titulo %}{{ votacion.nombre }}{% endblock %}
@@ -43,7 +43,13 @@ Sin conteos (RN-06, pendiente) y sin botón de voto: el registro de votos llega 
   <p class="muted vacio">Esta votación aún no tiene opciones publicadas.</p>
 {% endif %}
 
-<p class="pendiente" style="margin-top:1.25rem"><i class="ph-fill ph-hourglass" aria-hidden="true"></i><span>El registro de votos todavía no está habilitado.</span></p>
+{% if se_puede_votar %}
+  <div class="acciones">
+    <a class="btn btn-primary btn-block" href="{% url 'votos:votar' votacion.categoria.pk %}"><i class="ph-fill ph-check-fat" aria-hidden="true"></i> Votar en esta categoría</a>
+  </div>
+{% else %}
+  <p class="pendiente" style="margin-top:1.25rem"><i class="ph-fill ph-hourglass" aria-hidden="true"></i><span>La votación de esta categoría no está abierta en este momento.</span></p>
+{% endif %}
 </section>
 </div>
 {% endblock %}

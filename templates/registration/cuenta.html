@@ -13,7 +13,7 @@
   <dt>Correo</dt><dd>{{ user.email }}</dd>
   <dt>Tipo de cuenta</dt>
   <dd>{% if user.is_staff %}Personal de la organización
-      <span class="dd-nota">Las cuentas del personal no votarán (RN-08, pendiente de la Fundación).</span>
+      <span class="dd-nota">Si el personal puede votar está pendiente de la decisión de la Fundación (RN-08); por ahora el sistema no lo impide.</span>
     {% else %}Público{% endif %}</dd>
   <dt>Correo verificado</dt>
   <dd>{% if user.correo_verificado %}Sí{% else %}No{% endif %}

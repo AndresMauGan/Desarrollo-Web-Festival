@@ -30,6 +30,13 @@ def edicion_activa():
     return Edicion.objects.filter(activa=True).order_by("-anio").first()
 
 
+def se_puede_votar(categoria):
+    """Si hoy se puede votar en la categoría (misma regla que votos.servicios.registrar_voto)."""
+    from votos.servicios import se_puede_votar as verificar  # import local: votos.servicios importa este módulo
+
+    return verificar(categoria)
+
+
 def categorias_publicadas(edicion):
     """Categorías publicadas de una edición, con cuántas votaciones públicas tiene cada una."""
     return edicion.categorias.filter(publicada=True).annotate(
@@ -114,11 +121,12 @@ class CategoriaDetailView(DetailView):
     def get_context_data(self, **kwargs):
         contexto = super().get_context_data(**kwargs)
         contexto["votaciones"] = self.object.votaciones.filter(estado__in=ESTADOS_PUBLICOS)
+        contexto["se_puede_votar"] = se_puede_votar(self.object)
         return contexto
 
 
 class VotacionDetailView(DetailView):
-    """Pantalla 6 · Detalle de la votación: horario, reglas provisionales y opciones publicadas. Sin conteos."""
+    """Pantalla 6 · Detalle de la votación: horario, reglas y opciones publicadas, con acceso a votar. Sin conteos."""
 
     queryset = Votacion.objects.filter(categoria__publicada=True, estado__in=ESTADOS_PUBLICOS).select_related("categoria__edicion")
     template_name = "festival/votacion.html"
@@ -127,4 +135,5 @@ class VotacionDetailView(DetailView):
     def get_context_data(self, **kwargs):
         contexto = super().get_context_data(**kwargs)
         contexto["opciones"] = self.object.opciones_publicadas()
+        contexto["se_puede_votar"] = se_puede_votar(self.object.categoria)
         return contexto
