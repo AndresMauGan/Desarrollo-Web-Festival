@@ -21,6 +21,7 @@
 </dl>
 
 <div class="acciones">
+  <a class="btn btn-primary btn-block" href="{% url 'votos:mis_votos' %}"><i class="ph-fill ph-seal-check" aria-hidden="true"></i> Mis votos</a>
   {% if user.is_staff %}<a class="btn btn-primary btn-block" href="{% url 'admin:index' %}">Ir a la administración</a>{% endif %}
   <form method="post" action="{% url 'cuentas:logout' %}">
     {% csrf_token %}

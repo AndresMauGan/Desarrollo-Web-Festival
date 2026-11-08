@@ -18,10 +18,22 @@ class SoloLecturaAdmin(admin.ModelAdmin):
 
 @admin.register(Voto)
 class VotoAdmin(SoloLecturaAdmin):
-    list_display = ("fecha_hora", "usuario", "votacion", "opcion")
-    list_filter = ("votacion__categoria__edicion", "votacion")
-    search_fields = ("usuario__email", "hash_auditoria")
+    """Votos tal como están en votos_voto (CP-08). Filtro de fecha normal: date_hierarchy necesita
+    las tablas de zonas horarias de MySQL."""
+
+    list_display = ("usuario", "edicion", "categoria", "votacion", "opcion", "fecha_hora")
+    list_filter = ("edicion", "categoria", "fecha_hora")
+    search_fields = ("usuario__email",)
+    search_help_text = "Busca por el correo de quien votó."
     ordering = ("-fecha_hora",)
+    list_select_related = ("usuario", "edicion", "categoria", "votacion", "opcion")
+    fields = ("usuario", "edicion", "categoria", "votacion", "opcion", "fecha_hora", "codigo_comprobante",
+              "hash_auditoria", "huella_ip", "huella_navegador")
+    readonly_fields = ("fecha_hora", "codigo_comprobante")
+
+    @admin.display(description="código de comprobante")
+    def codigo_comprobante(self, voto):
+        return voto.codigo_comprobante
 
 
 @admin.register(RegistroAuditoria)

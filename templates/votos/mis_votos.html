@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load festival_extras %}
+{% comment %}«Mis votos» (CU-05 para el votante, CP-07): solo los votos de quien inició sesión.{% endcomment %}
+
+{% block titulo %}Mis votos{% endblock %}
+
+{% block contenido %}
+<a class="volver" href="{% url 'cuentas:cuenta' %}"><i class="ph ph-caret-left" aria-hidden="true"></i> Tu cuenta</a>
+<h1 class="vista-titulo serif">Mis votos</h1>
+<p class="vista-sub">Las categorías en las que ya votaste. Cada voto es definitivo.</p>
+
+{% if votos %}
+  <div class="lista">
+    {% for voto in votos %}
+      <a class="fila" href="{% url 'votos:comprobante' voto.pk %}">
+        <span class="cat-ico" aria-hidden="true"><i class="ph-fill ph-seal-check"></i></span>
+        <div class="fila-info">
+          <strong>{{ voto.categoria.nombre }} · {{ voto.edicion.anio }}</strong>
+          <span>{{ voto.opcion.nombre }} · {{ voto.votacion.nombre }}<br>{{ voto.fecha_hora|fecha_hora_co }} · <span class="mono">{{ voto.codigo_comprobante }}</span></span>
+        </div>
+        <i class="ph ph-caret-right" aria-hidden="true"></i>
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="muted vacio">Todavía no has votado en ninguna categoría.</p>
+{% endif %}
+
+{% if pendientes %}
+  <h2 class="seccion-titulo">Aún puedes votar en</h2>
+  <div class="lista">
+    {% for categoria in pendientes %}
+      <a class="fila" href="{% url 'votos:votar' categoria.pk %}">
+        <span class="cat-ico" aria-hidden="true"><i class="ph-fill {{ categoria|icono_categoria }}"></i></span>
+        <div class="fila-info"><strong>{{ categoria.nombre }}</strong><span>{{ categoria.edicion.nombre }}</span></div>
+        <i class="ph ph-caret-right" aria-hidden="true"></i>
+      </a>
+    {% endfor %}
+  </div>
+{% endif %}
+{% endblock %}

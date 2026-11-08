@@ -13,13 +13,15 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views import View
-from django.views.generic import DetailView
+from django.views.generic import DetailView, ListView
 
 from festival.models import Categoria
+from festival.views import edicion_activa
 
 from .forms import ElegirOpcionForm
 from .models import Voto
-from .servicios import VotoRechazado, opciones_disponibles, registrar_voto, verificar_categoria, voto_en_categoria
+from .servicios import (VotoRechazado, opciones_disponibles, registrar_voto, se_puede_votar, verificar_categoria,
+                        voto_en_categoria)
 
 
 def _categoria_publicada(pk):
@@ -108,3 +110,28 @@ class ComprobanteView(LoginRequiredMixin, DetailView):
 
     def get_queryset(self):
         return Voto.objects.filter(usuario=self.request.user).select_related("opcion", "votacion", "categoria", "edicion")
+
+
+class MisVotosView(LoginRequiredMixin, ListView):
+    """«Mis votos» (CP-07): solo los votos de quien inició sesión, nunca los de otras personas."""
+
+    template_name = "votos/mis_votos.html"
+    context_object_name = "votos"
+
+    def get_queryset(self):
+        return (Voto.objects.filter(usuario=self.request.user)
+                .select_related("opcion", "votacion", "categoria", "edicion")
+                .order_by("-edicion__anio", "categoria__orden", "categoria__nombre"))
+
+    def get_context_data(self, **kwargs):
+        contexto = super().get_context_data(**kwargs)
+        # Participación: categorías abiertas de la edición activa en las que todavía no ha votado
+        edicion = edicion_activa()
+        pendientes = []
+        if edicion:
+            votadas = {voto.categoria_id for voto in contexto["votos"]}
+            for categoria in edicion.categorias.filter(publicada=True).exclude(pk__in=votadas).select_related("edicion"):
+                if se_puede_votar(categoria):
+                    pendientes.append(categoria)
+        contexto["pendientes"] = pendientes
+        return contexto
