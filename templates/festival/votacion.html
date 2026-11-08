@@ -16,9 +16,9 @@ Sin conteos (RN-06, pendiente) y sin botón de voto: el registro de votos llega 
 <dl class="datos">
   <dt>Abre</dt><dd>{{ votacion.abre_en|fecha_hora_co }}</dd>
   <dt>Cierra</dt><dd>{{ votacion.cierra_en|fecha_hora_co }}</dd>
-  <dt>Límite de votos <span class="etiqueta-provisional">Provisional</span></dt>
-  <dd>{{ votacion.limite_votos_por_usuario }} {% if votacion.limite_votos_por_usuario == 1 %}voto{% else %}votos{% endif %} por persona
-    <span class="dd-nota">Pendiente de la decisión de la Fundación (P-03).</span></dd>
+  <dt>Límite de votos</dt>
+  <dd>Un voto por persona en esta categoría
+    <span class="dd-nota">Aunque la categoría tenga varias votaciones, solo se elige una opción por edición (RN-01).</span></dd>
   <dt>Resultados <span class="etiqueta-provisional">Provisional</span></dt>
   <dd>{{ votacion.get_visibilidad_resultados_display }}
     <span class="dd-nota">Pendiente de la decisión de la Fundación (P-05).</span></dd>

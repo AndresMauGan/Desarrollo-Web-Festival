@@ -78,7 +78,7 @@ class VotacionAdminForm(forms.ModelForm):
 @admin.register(Votacion)
 class VotacionAdmin(admin.ModelAdmin):
     form = VotacionAdminForm
-    list_display = ("nombre", "categoria", "ronda", "estado", "abre_en", "cierra_en", "limite_votos_por_usuario", "visibilidad_resultados")
+    list_display = ("nombre", "categoria", "ronda", "estado", "abre_en", "cierra_en", "visibilidad_resultados")
     # Filtro por fecha en lugar de date_hierarchy: este usa CONVERT_TZ y falla en MySQL sin las tablas de zonas horarias.
     list_filter = ("estado", "ronda", "visibilidad_resultados", "categoria__edicion", "categoria", "abre_en")
     search_fields = ("nombre", "categoria__nombre")
@@ -87,7 +87,7 @@ class VotacionAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {"fields": ("categoria", "nombre", "ronda", "estado")}),
         ("Horario", {"fields": ("abre_en", "cierra_en")}),
-        ("Reglas pendientes de la Fundación (provisionales)", {"fields": ("limite_votos_por_usuario", "visibilidad_resultados")}),
+        ("Reglas pendientes de la Fundación (provisionales)", {"fields": ("visibilidad_resultados",)}),
     )
 
 

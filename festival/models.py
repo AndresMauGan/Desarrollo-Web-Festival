@@ -10,7 +10,6 @@ El lado «exactamente uno» es una ForeignKey obligatoria con PROTECT: nada se b
 """
 
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator
 from django.db import models
 
 from . import reglas
@@ -100,13 +99,8 @@ class Votacion(models.Model):
         default=reglas.VISIBILIDAD_RESULTADOS_POR_DEFECTO,
         help_text="Pendiente de validación (P-05). Por defecto, al cierre.",
     )
-    # RN-01, pendiente (P-03). Por eso no hay restricción única (usuario, votación) en Voto.
-    limite_votos_por_usuario = models.PositiveSmallIntegerField(
-        "límite de votos por usuario",
-        default=reglas.LIMITE_VOTOS_POR_DEFECTO,
-        validators=[MinValueValidator(1)],
-        help_text="Pendiente de validación (P-03). Por defecto, 1.",
-    )
+    # RN-01 (definida por la guía de la Entrega 3): el límite es un voto por usuario, categoría y edición,
+    # y lo garantiza la restricción única de votos.Voto. Por eso Votación ya no tiene un límite propio.
 
     class Meta:
         verbose_name = "votación"

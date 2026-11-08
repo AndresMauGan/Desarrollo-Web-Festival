@@ -151,15 +151,13 @@ class ModelosTests(DatosBase):
     # Reglas pendientes (observación 2 del docente): valores por defecto en reglas.py, marcados en el admin
     def test_valores_por_defecto_salen_de_reglas(self):
         vacia = self.nueva_votacion()
-        self.assertEqual(vacia.limite_votos_por_usuario, reglas.LIMITE_VOTOS_POR_DEFECTO)
         self.assertEqual(vacia.visibilidad_resultados, reglas.VISIBILIDAD_RESULTADOS_POR_DEFECTO)
-        self.assertIn("Pendiente de validación (P-03)", Votacion._meta.get_field("limite_votos_por_usuario").help_text)
         self.assertIn("Pendiente de validación (P-05)", Votacion._meta.get_field("visibilidad_resultados").help_text)
 
-    def test_limite_minimo_uno(self):
-        self.votacion.limite_votos_por_usuario = 0
-        with self.assertRaises(ValidationError):
-            self.votacion.full_clean()
+    def test_rn01_definida_sin_limite_por_votacion(self):
+        # Entrega 3: RN-01 es un voto por usuario, categoría y edición; la votación ya no tiene límite propio.
+        self.assertEqual(reglas.VOTOS_POR_USUARIO_CATEGORIA_EDICION, 1)
+        self.assertNotIn("limite_votos_por_usuario", {campo.name for campo in Votacion._meta.get_fields()})
 
 
 class AdminTests(DatosBase):
@@ -186,7 +184,7 @@ class AdminTests(DatosBase):
             "categoria": v.categoria_id, "nombre": v.nombre, "ronda": v.ronda, "estado": estado,
             "abre_en_0": local(v.abre_en).strftime("%d/%m/%Y"), "abre_en_1": local(v.abre_en).strftime("%H:%M:%S"),
             "cierra_en_0": local(v.cierra_en).strftime("%d/%m/%Y"), "cierra_en_1": local(v.cierra_en).strftime("%H:%M:%S"),
-            "limite_votos_por_usuario": 1, "visibilidad_resultados": "al_cierre",
+            "visibilidad_resultados": "al_cierre",
             "opciones-TOTAL_FORMS": 2, "opciones-INITIAL_FORMS": 2, "opciones-MIN_NUM_FORMS": 0, "opciones-MAX_NUM_FORMS": 1000,
         }
         for i, opcion in enumerate([self.publicada, self.sin_publicar]):
@@ -263,9 +261,11 @@ class VistasPublicasTests(DatosBase):
 
     def test_detalle_marca_reglas_pendientes_como_provisionales(self):
         respuesta = self.client.get(f"/votaciones/{self.votacion.pk}/")
-        self.assertContains(respuesta, "Provisional", count=2)
-        self.assertContains(respuesta, "(P-03)")
+        # Solo la visibilidad sigue pendiente (P-05); el límite de votos (RN-01) ya está definido.
+        self.assertContains(respuesta, "Provisional", count=1)
         self.assertContains(respuesta, "(P-05)")
+        self.assertNotContains(respuesta, "(P-03)")
+        self.assertContains(respuesta, "RN-01")
 
     def test_detalle_sin_conteos_ni_boton_de_voto(self):
         respuesta = self.client.get(f"/votaciones/{self.votacion.pk}/")
