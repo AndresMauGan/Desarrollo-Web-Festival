@@ -52,7 +52,7 @@ def categorias(request):
             return JsonResponse({"edicion": None, "categorias": []}, json_dumps_params=PARAMETROS_JSON)
     else:
         if not anio.isdigit():
-            return JsonResponse({"error": "El parámetro «edicion» debe ser un año, por ejemplo 2027."},
+            return JsonResponse({"error": "El parámetro «edicion» debe ser un año de cuatro cifras."},
                                 status=400, json_dumps_params=PARAMETROS_JSON)
         edicion = Edicion.objects.filter(anio=int(anio)).first()
         if edicion is None:
