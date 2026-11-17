@@ -10,7 +10,7 @@ El lado «exactamente uno» es una ForeignKey obligatoria con PROTECT: nada se b
 """
 
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, transaction
 
 from . import reglas
 
@@ -35,6 +35,22 @@ class Edicion(models.Model):
     def clean(self):
         if self.fecha_inicio and self.fecha_fin and self.fecha_fin < self.fecha_inicio:
             raise ValidationError({"fecha_fin": "La fecha de fin no puede ser anterior a la de inicio."})
+
+    def save(self, *args, **kwargs):
+        """
+        Una sola edición activa: al guardar esta como activa, las demás se desactivan en la misma transacción.
+        Se hace aquí y no con una restricción única porque MySQL no admite restricciones únicas condicionales
+        («única cuando activa = 1»). Las ediciones desactivadas quedan en self.ediciones_desactivadas.
+        """
+        self.ediciones_desactivadas = []
+        campos = kwargs.get("update_fields")
+        with transaction.atomic():
+            if self.activa and (campos is None or "activa" in campos):
+                otras = (Edicion.objects.select_for_update().filter(activa=True).exclude(pk=self.pk)
+                         .order_by("-anio"))
+                self.ediciones_desactivadas = list(otras)
+                Edicion.objects.filter(pk__in=[e.pk for e in self.ediciones_desactivadas]).update(activa=False)
+            super().save(*args, **kwargs)
 
 
 class Categoria(models.Model):
@@ -98,6 +114,13 @@ class Votacion(models.Model):
         choices=Visibilidad.choices,
         default=reglas.VISIBILIDAD_RESULTADOS_POR_DEFECTO,
         help_text="Pendiente de validación (P-05). Por defecto, al cierre.",
+    )
+    # RN-06, pendiente (P-05): con visibilidad «En la ceremonia», el público ve los resultados solo cuando
+    # el personal los publica. No se exige que la votación esté cerrada: esa regla no está decidida.
+    resultados_publicados = models.BooleanField(
+        "resultados publicados",
+        default=False,
+        help_text="Solo aplica con visibilidad «En la ceremonia»: el público ve los resultados cuando se marca.",
     )
     # RN-01 (definida por la guía de la Entrega 3): el límite es un voto por usuario, categoría y edición,
     # y lo garantiza la restricción única de votos.Voto. Por eso Votación ya no tiene un límite propio.

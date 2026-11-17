@@ -7,19 +7,21 @@ CU-03 · Emitir voto. Flujo: elegir categoría → elegir opción → confirmar 
 """
 
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.auth.views import redirect_to_login
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.views import View
-from django.views.generic import DetailView, ListView
+from django.views.generic import DetailView, ListView, TemplateView
 
-from festival.models import Categoria
-from festival.views import edicion_activa
+from festival.models import Categoria, Edicion, Votacion
+from festival.views import ESTADOS_PUBLICOS, edicion_activa
 
 from .forms import ElegirOpcionForm
 from .models import Voto
+from .resultados import resultados_de_edicion, resultados_de_votacion, resultados_visibles
 from .servicios import (VotoRechazado, opciones_disponibles, registrar_voto, se_puede_votar, verificar_categoria,
                         voto_en_categoria)
 
@@ -134,4 +136,52 @@ class MisVotosView(LoginRequiredMixin, ListView):
                 if se_puede_votar(categoria):
                     pendientes.append(categoria)
         contexto["pendientes"] = pendientes
+        return contexto
+
+
+class ResultadosView(PermissionRequiredMixin, TemplateView):
+    """
+    Resultados para el personal (CU-05): votos por categoría, votación y opción, con datos reales de MySQL.
+
+    Exige el permiso votos.ver_resultados. Sin sesión redirige al inicio de sesión con «next»;
+    con sesión y sin el permiso responde 403. Muestra la edición activa, u otra con ?edicion=<año>.
+    """
+
+    permission_required = "votos.ver_resultados"
+    template_name = "votos/resultados.html"
+
+    def get_context_data(self, **kwargs):
+        contexto = super().get_context_data(**kwargs)
+        anio = self.request.GET.get("edicion")
+        if anio is None:
+            edicion = edicion_activa()
+        elif anio.isdigit():
+            edicion = get_object_or_404(Edicion, anio=int(anio))
+        else:
+            raise Http404("El parámetro «edicion» debe ser un año.")
+        contexto.update(
+            edicion=edicion,
+            ediciones=Edicion.objects.order_by("-anio"),
+            categorias=resultados_de_edicion(edicion) if edicion else [],
+            consultado_en=timezone.now(),
+        )
+        return contexto
+
+
+class ResultadosVotacionView(DetailView):
+    """
+    Resultados públicos de una votación, según la visibilidad que eligió el administrador (RN-06, pendiente P-05).
+    Mientras no se puedan ver, la página explica cuándo se publicarán y no calcula ningún conteo.
+    """
+
+    queryset = Votacion.objects.filter(categoria__publicada=True, estado__in=ESTADOS_PUBLICOS).select_related("categoria__edicion")
+    template_name = "votos/resultados_votacion.html"
+    context_object_name = "votacion"
+
+    def get_context_data(self, **kwargs):
+        contexto = super().get_context_data(**kwargs)
+        visibles, explicacion = resultados_visibles(self.object)
+        contexto.update(visibles=visibles, explicacion=explicacion, consultado_en=timezone.now())
+        if visibles:
+            resultados_de_votacion(self.object)
         return contexto

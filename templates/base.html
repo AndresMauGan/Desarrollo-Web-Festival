@@ -27,6 +27,29 @@
     {% endif %}
   </header>
 
+  {% comment %}
+  Menú según el perfil: «Mis votos» y «Cerrar sesión» para quien inició sesión; «Resultados» solo con el permiso
+  votos.ver_resultados y «Administración» solo para el personal (is_staff). Sin usuario en el contexto (página 500)
+  no se muestra, así que no consulta la base de datos.
+  {% endcomment %}
+  {% if user.is_authenticated %}
+    {% with nombre_url=request.resolver_match.url_name %}
+    <nav class="menu-perfil" aria-label="Tu cuenta">
+      <a class="chip-perfil{% if nombre_url == 'mis_votos' %} active{% endif %}" href="{% url 'votos:mis_votos' %}"><i class="ph ph-seal-check" aria-hidden="true"></i>Mis votos</a>
+      {% if perms.votos.ver_resultados %}
+        <a class="chip-perfil{% if nombre_url == 'panel' %} active{% endif %}" href="{% url 'resultados:panel' %}"><i class="ph ph-chart-bar" aria-hidden="true"></i>Resultados</a>
+      {% endif %}
+      {% if user.is_staff %}
+        <a class="chip-perfil" href="{% url 'admin:index' %}"><i class="ph ph-gear-six" aria-hidden="true"></i>Administración</a>
+      {% endif %}
+      <form method="post" action="{% url 'cuentas:logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="chip-perfil"><i class="ph ph-sign-out" aria-hidden="true"></i>Cerrar sesión</button>
+      </form>
+    </nav>
+    {% endwith %}
+  {% endif %}
+
   {% comment %}En celular y tableta es la barra inferior fija; en escritorio va en la barra superior (ver styles.css).{% endcomment %}
   {% seccion_activa as seccion %}
   <nav class="bottom-nav" aria-label="Navegación principal">

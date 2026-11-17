@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% comment %}403 · Sin permiso (por ejemplo, un votante que entra a /resultados/). La renderiza django.views.defaults.permission_denied.{% endcomment %}
+
+{% block titulo %}Sin permiso{% endblock %}
+
+{% block contenido %}
+<div class="angosto">
+<h1 class="vista-titulo serif">No tienes permiso para ver esta página</h1>
+<p class="vista-sub">Esta sección es solo para el personal del Festival con el permiso correspondiente.
+  Si crees que deberías tener acceso, pídeselo a la administración.</p>
+<div class="acciones">
+  <a class="btn btn-primary btn-block" href="{% url 'festival:inicio' %}">Ir al inicio</a>
+  {% if user.is_authenticated %}
+    <a class="btn btn-ghost btn-block" href="{% url 'votos:mis_votos' %}">Ver mis votos</a>
+  {% else %}
+    <a class="btn btn-ghost btn-block" href="{% url 'cuentas:login' %}">Iniciar sesión</a>
+  {% endif %}
+</div>
+</div>
+{% endblock %}

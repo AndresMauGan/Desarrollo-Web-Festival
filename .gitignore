@@ -15,3 +15,6 @@ __pycache__/
 # Archivos subidos y estáticos recolectados
 media/
 staticfiles/
+
+# Registros de errores (logs/festival.log): nunca se suben
+logs/

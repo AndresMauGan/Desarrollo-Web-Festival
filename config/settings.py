@@ -29,12 +29,37 @@ def lista_entorno(nombre, por_defecto=""):
     return [v.strip() for v in variable_entorno(nombre, por_defecto).split(",") if v.strip()]
 
 
+def booleano_entorno(nombre, por_defecto="False"):
+    return variable_entorno(nombre, por_defecto).lower() in ("1", "true", "si", "sí")
+
+
 # ---------------------------------------------------------------------------
 # Seguridad
 # ---------------------------------------------------------------------------
 SECRET_KEY = variable_entorno("DJANGO_SECRET_KEY")
-DEBUG = variable_entorno("DJANGO_DEBUG", "False").lower() in ("1", "true", "si", "sí")
+DEBUG = booleano_entorno("DJANGO_DEBUG")
 ALLOWED_HOSTS = lista_entorno("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
+
+# Despliegue con HTTPS. Estas opciones vienen apagadas por defecto para poder probar con DEBUG=False en
+# http://127.0.0.1 (con cookies seguras, el inicio de sesión no funcionaría sin HTTPS). La configuración de
+# producción de ejemplo de .env.example las enciende, y con ella «check --deploy» no da advertencias.
+SESSION_COOKIE_SECURE = booleano_entorno("DJANGO_COOKIES_SEGURAS")
+CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE
+SECURE_SSL_REDIRECT = booleano_entorno("DJANGO_SECURE_SSL_REDIRECT")
+SECURE_HSTS_SECONDS = int(variable_entorno("DJANGO_SECURE_HSTS_SECONDS", "0"))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = booleano_entorno("DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS")
+SECURE_HSTS_PRELOAD = booleano_entorno("DJANGO_SECURE_HSTS_PRELOAD")
+CSRF_TRUSTED_ORIGINS = lista_entorno("DJANGO_CSRF_TRUSTED_ORIGINS", "")
+# Solo si un proxy (Nginx, Apache, IIS…) termina el HTTPS y envía X-Forwarded-Proto
+if booleano_entorno("DJANGO_DETRAS_DE_PROXY"):
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# Siempre activas
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "same-origin"
+X_FRAME_OPTIONS = "DENY"
+SESSION_COOKIE_HTTPONLY = True
+CSRF_FAILURE_VIEW = "config.vistas_error.fallo_csrf"
 
 
 # ---------------------------------------------------------------------------
@@ -46,6 +71,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    "whitenoise.runserver_nostatic",  # runserver deja los estáticos a WhiteNoise, igual que en producción
     "django.contrib.staticfiles",
     # Aplicaciones del proyecto
     "cuentas",   # Usuario, registro, inicio y cierre de sesión (CU-01)
@@ -55,6 +81,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # sirve los estáticos también con DEBUG=False
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -137,7 +164,47 @@ USE_TZ = True
 # ---------------------------------------------------------------------------
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+# En producción: «python manage.py collectstatic» copia aquí los estáticos y WhiteNoise los sirve.
+# La carpeta se crea vacía si no existe, porque WhiteNoise avisa cuando falta (no se sube a Git).
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_ROOT.mkdir(exist_ok=True)
+# WhiteNoise también los busca en sus carpetas de origen, así funcionan con DEBUG=False aunque
+# no se haya ejecutado collectstatic (por ejemplo, para mostrar las páginas de error en la demostración).
+WHITENOISE_USE_FINDERS = True
 
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+
+# ---------------------------------------------------------------------------
+# Registro de errores: en consola y en logs/festival.log (rotativo, 1 MB × 5). La carpeta logs/ no se sube a Git.
+# Solo guarda la ruta, el tipo de error y el traceback: ni correos, ni contraseñas, ni datos de los votos.
+# ---------------------------------------------------------------------------
+DIRECTORIO_LOGS = BASE_DIR / "logs"
+DIRECTORIO_LOGS.mkdir(exist_ok=True)
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "simple": {"format": "{asctime} {levelname} {name}: {message}", "style": "{"},
+    },
+    "handlers": {
+        "consola": {"class": "logging.StreamHandler", "level": "ERROR", "formatter": "simple"},
+        "archivo": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": DIRECTORIO_LOGS / "festival.log",
+            "maxBytes": 1_000_000,
+            "backupCount": 5,
+            "encoding": "utf-8",
+            "delay": True,
+            "level": "WARNING",
+            "formatter": "simple",
+        },
+    },
+    "loggers": {
+        # Errores 500, accesos denegados, fallos de CSRF y encabezados Host no permitidos
+        "django.request": {"handlers": ["consola", "archivo"], "level": "WARNING", "propagate": False},
+        "django.security": {"handlers": ["consola", "archivo"], "level": "WARNING", "propagate": False},
+    },
+}

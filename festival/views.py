@@ -26,7 +26,7 @@ ESTADOS_PUBLICOS = list(ETIQUETAS_ESTADO)
 
 
 def edicion_activa():
-    """La edición activa más reciente. No hay regla de «una sola activa» (MySQL no admite restricciones únicas condicionales)."""
+    """La edición activa. Solo hay una: Edicion.save() desactiva las demás (por si acaso, se toma la más reciente)."""
     return Edicion.objects.filter(activa=True).order_by("-anio").first()
 
 

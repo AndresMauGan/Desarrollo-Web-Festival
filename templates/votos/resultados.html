@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load festival_extras %}
+{% comment %}
+Resultados para el personal (CU-05). Exige el permiso votos.ver_resultados.
+Muestra todos los conteos, sin importar la visibilidad pública de cada votación.
+{% endcomment %}
+
+{% block titulo %}Resultados{% if edicion %} · {{ edicion.anio }}{% endif %}{% endblock %}
+
+{% block contenido %}
+<h1 class="vista-titulo serif">Resultados</h1>
+
+{% if edicion %}
+  <p class="vista-sub">{{ edicion.nombre }} · consultado el {{ consultado_en|fecha_hora_co }}</p>
+
+  <form method="get" class="filtro-edicion">
+    <label class="form-label" for="edicion">Edición</label>
+    <div class="filtro-fila">
+      <select class="input" id="edicion" name="edicion">
+        {% for otra in ediciones %}
+          <option value="{{ otra.anio }}"{% if otra.pk == edicion.pk %} selected{% endif %}>{{ otra.anio }} · {{ otra.nombre }}{% if otra.activa %} (activa){% endif %}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-ghost">Ver</button>
+    </div>
+  </form>
+
+  {% for categoria in categorias %}
+    <section class="res-categoria" aria-labelledby="categoria-{{ categoria.pk }}">
+      <h2 class="seccion-titulo" id="categoria-{{ categoria.pk }}">{{ categoria.nombre }}</h2>
+      <p class="muted res-votantes">
+        {% if categoria.votantes == 1 %}1 persona votó{% else %}{{ categoria.votantes }} personas votaron{% endif %} en esta categoría
+        {% if not categoria.publicada %} · <span class="etiqueta-provisional">No publicada</span>{% endif %}
+      </p>
+      {% for votacion in categoria.votaciones_contadas %}
+        <article class="card res-votacion">
+          <div class="resultado-cab">
+            <h3>{{ votacion.nombre }}</h3>
+            {% estado_votacion votacion %}
+          </div>
+          <p class="muted">{{ votacion.get_ronda_display }} · cierra el {{ votacion.cierra_en|fecha_hora_co }}</p>
+          <p class="muted res-publico">
+            <i class="ph {% if votacion.visible_al_publico %}ph-eye{% else %}ph-eye-slash{% endif %}" aria-hidden="true"></i>
+            Público: {% if votacion.visible_al_publico %}los ve{% else %}no los ve todavía{% endif %}
+            ({{ votacion.get_visibilidad_resultados_display|lower }}, provisional P-05).
+          </p>
+          {% include "votos/_barras.html" %}
+        </article>
+      {% empty %}
+        <p class="muted vacio">Esta categoría no tiene votaciones fuera de borrador.</p>
+      {% endfor %}
+    </section>
+  {% empty %}
+    <p class="muted vacio">Esta edición no tiene categorías.</p>
+  {% endfor %}
+{% else %}
+  <p class="muted vacio">No hay una edición activa. Elige una desde el administrador o con ?edicion=&lt;año&gt;.</p>
+{% endif %}
+{% endblock %}

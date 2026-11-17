@@ -28,7 +28,7 @@ SECCIONES = {
     "categorias_actuales": "categorias", "categorias": "categorias", "categoria": "categorias", "votacion": "categorias",
     "ediciones": "ediciones", "edicion": "ediciones",
     "cuenta": "cuenta", "login": "cuenta", "registro": "cuenta",
-    "votar": "categorias", "comprobante": "cuenta", "mis_votos": "cuenta",
+    "votar": "categorias", "comprobante": "cuenta", "mis_votos": "cuenta", "panel": "cuenta",
 }
 
 
