@@ -16,5 +16,6 @@ __pycache__/
 media/
 staticfiles/
 
-# Registros de errores (logs/festival.log): nunca se suben
+# Registros de errores (logs/festival.log) y respaldos de la base: nunca se suben
 logs/
+respaldos/

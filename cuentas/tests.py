@@ -1,4 +1,9 @@
-"""Pruebas de cuentas: modelo Usuario, registro, inicio y cierre de sesión (CU-01)."""
+"""Pruebas de cuentas: modelo Usuario, registro, inicio y cierre de sesión (CU-01).
+
+Las contraseñas se generan en memoria en cada ejecución: no hay ninguna escrita en el código.
+"""
+
+import secrets
 
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
@@ -8,9 +13,13 @@ from .forms import VERSION_POLITICA_DATOS
 
 Usuario = get_user_model()
 
+CLAVE = secrets.token_urlsafe(16)        # contraseña válida, distinta en cada ejecución
+OTRA_CLAVE = secrets.token_urlsafe(16)
+CLAVE_DEBIL = str(secrets.randbelow(900) + 100)  # tres cifras: débil a propósito, para el validador
+
 VALIDO = {
     "email": "Nueva.Persona@Example.com", "nombre_para_mostrar": "Nueva Persona",
-    "password1": "Acordeon-2027!", "password2": "Acordeon-2027!", "autoriza_datos": "on", "mayor_edad": "on",
+    "password1": CLAVE, "password2": CLAVE, "autoriza_datos": "on", "mayor_edad": "on",
 }
 
 
@@ -22,22 +31,22 @@ class UsuarioTests(TestCase):
 
     def test_create_user_exige_correo(self):
         with self.assertRaises(ValueError):
-            Usuario.objects.create_user(email="", password="x")
+            Usuario.objects.create_user(email="")
 
     def test_create_user_y_str(self):
-        usuario = Usuario.objects.create_user(email="ana@EXAMPLE.com", password="Clave-2027", nombre_para_mostrar="Ana")
+        usuario = Usuario.objects.create_user(email="ana@EXAMPLE.com", password=CLAVE, nombre_para_mostrar="Ana")
         self.assertEqual(usuario.email, "ana@example.com")
         self.assertEqual(str(usuario), "Ana <ana@example.com>")
         self.assertFalse(usuario.is_staff or usuario.is_superuser or usuario.correo_verificado)
 
     def test_create_superuser(self):
-        admin = Usuario.objects.create_superuser(email="admin@example.com", password="Admin-2027", nombre_para_mostrar="Admin")
+        admin = Usuario.objects.create_superuser(email="admin@example.com", password=CLAVE, nombre_para_mostrar="Admin")
         self.assertTrue(admin.is_staff and admin.is_superuser)
 
     def test_correo_unico(self):
-        Usuario.objects.create_user(email="ana@example.com", password="Clave-2027", nombre_para_mostrar="Ana")
+        Usuario.objects.create_user(email="ana@example.com", password=CLAVE, nombre_para_mostrar="Ana")
         with self.assertRaises(IntegrityError), transaction.atomic():
-            Usuario.objects.create_user(email="ana@example.com", password="Clave-2027", nombre_para_mostrar="Copia")
+            Usuario.objects.create_user(email="ana@example.com", password=CLAVE, nombre_para_mostrar="Copia")
 
 
 class RegistroTests(TestCase):
@@ -68,8 +77,8 @@ class RegistroTests(TestCase):
         casos = {
             "sin autorización de datos": {"autoriza_datos": None},
             "sin mayoría de edad": {"mayor_edad": None},
-            "contraseñas distintas": {"password2": "Otra-Clave-2027"},
-            "contraseña débil": {"password1": "123", "password2": "123"},
+            "contraseñas distintas": {"password2": OTRA_CLAVE},
+            "contraseña débil": {"password1": CLAVE_DEBIL, "password2": CLAVE_DEBIL},
             "correo inválido": {"email": "no-es-correo"},
             "sin nombre": {"nombre_para_mostrar": ""},
         }
@@ -80,7 +89,7 @@ class RegistroTests(TestCase):
                 self.assertFalse(Usuario.objects.exists())
 
     def test_rechaza_correo_repetido_aunque_cambien_mayusculas(self):
-        Usuario.objects.create_user(email="nueva.persona@example.com", password="Clave-2027", nombre_para_mostrar="Primera")
+        Usuario.objects.create_user(email="nueva.persona@example.com", password=CLAVE, nombre_para_mostrar="Primera")
         respuesta = self.registrar(email="NUEVA.Persona@example.com")
         self.assertContains(respuesta, "Ya existe una cuenta con este correo.")
         self.assertEqual(Usuario.objects.count(), 1)
@@ -89,24 +98,24 @@ class RegistroTests(TestCase):
 class SesionTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.usuario = Usuario.objects.create_user(email="ana@example.com", password="Clave-Segura-2027", nombre_para_mostrar="Ana")
+        cls.usuario = Usuario.objects.create_user(email="ana@example.com", password=CLAVE, nombre_para_mostrar="Ana")
 
     def test_inicio_de_sesion_correcto(self):
-        respuesta = self.client.post("/cuentas/ingresar/", {"username": "ana@example.com", "password": "Clave-Segura-2027"})
+        respuesta = self.client.post("/cuentas/ingresar/", {"username": "ana@example.com", "password": CLAVE})
         self.assertRedirects(respuesta, "/")
         self.assertEqual(int(self.client.session["_auth_user_id"]), self.usuario.pk)
 
     def test_inicio_de_sesion_sin_importar_mayusculas_y_con_next(self):
-        respuesta = self.client.post("/cuentas/ingresar/", {"username": "ANA@example.com", "password": "Clave-Segura-2027", "next": "/cuentas/"})
+        respuesta = self.client.post("/cuentas/ingresar/", {"username": "ANA@example.com", "password": CLAVE, "next": "/cuentas/"})
         self.assertRedirects(respuesta, "/cuentas/")
 
     def test_rechaza_contrasena_incorrecta(self):
-        respuesta = self.client.post("/cuentas/ingresar/", {"username": "ana@example.com", "password": "otra"})
+        respuesta = self.client.post("/cuentas/ingresar/", {"username": "ana@example.com", "password": OTRA_CLAVE})
         self.assertContains(respuesta, "El correo o la contraseña no coinciden.")
         self.assertNotIn("_auth_user_id", self.client.session)
 
     def test_no_redirige_a_sitios_externos(self):
-        respuesta = self.client.post("/cuentas/ingresar/", {"username": "ana@example.com", "password": "Clave-Segura-2027", "next": "https://externo.example/"})
+        respuesta = self.client.post("/cuentas/ingresar/", {"username": "ana@example.com", "password": CLAVE, "next": "https://externo.example/"})
         self.assertRedirects(respuesta, "/")
 
     def test_cierre_de_sesion_solo_por_post(self):

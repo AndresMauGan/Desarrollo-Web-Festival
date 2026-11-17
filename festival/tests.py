@@ -2,13 +2,14 @@
 
 from datetime import date, timedelta
 from io import StringIO
+from unittest import mock
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.core.management import call_command
-from django.db import IntegrityError, transaction
+from django.core.management import CommandError, call_command
+from django.db import IntegrityError, connection, transaction
 from django.db.models import ProtectedError
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from . import reglas
@@ -164,7 +165,7 @@ class AdminTests(DatosBase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        cls.admin = get_user_model().objects.create_superuser(email="admin@example.com", password="Admin-Prueba-2027", nombre_para_mostrar="Admin")
+        cls.admin = get_user_model().objects.create_superuser(email="admin@example.com", nombre_para_mostrar="Admin")  # sin contraseña: entra con force_login
 
     def setUp(self):
         self.client.force_login(self.admin)
@@ -296,9 +297,12 @@ class VistasPublicasTests(DatosBase):
 
 
 class CargarDatosPruebaTests(TestCase):
+    # Las pruebas corren con DEBUG=False y sin teclado: se usan --no-input y --permitir-sin-debug
+    SIN_PREGUNTAR = {"interactive": False, "permitir_sin_debug": True}
+
     def test_carga_sin_duplicar_y_con_todos_los_estados(self):
-        call_command("cargar_datos_prueba", stdout=StringIO())
-        call_command("cargar_datos_prueba", stdout=StringIO())
+        call_command("cargar_datos_prueba", stdout=StringIO(), **self.SIN_PREGUNTAR)
+        call_command("cargar_datos_prueba", stdout=StringIO(), **self.SIN_PREGUNTAR)
         self.assertEqual(list(Edicion.objects.order_by("anio").values_list("anio", flat=True)), [2026, 2027])
         self.assertEqual(Categoria.objects.filter(edicion__anio=2027).count(), 4)
         self.assertEqual(set(Votacion.objects.values_list("estado", flat=True)), set(Votacion.Estado.values))
@@ -310,3 +314,23 @@ class CargarDatosPruebaTests(TestCase):
         self.assertTrue(all(v.abre_en <= ahora < v.cierra_en for v in abiertas))
         self.assertEqual(abiertas.filter(categoria__nombre="Acordeonera Mayor").count(), 2)
         self.assertTrue(all("Ficti" in nombre for nombre in Opcion.objects.values_list("nombre", flat=True)))
+
+    def test_muestra_la_base_y_avisa_si_no_es_la_de_demostracion(self):
+        salida = StringIO()
+        call_command("cargar_datos_prueba", stdout=salida, **self.SIN_PREGUNTAR)
+        self.assertIn(f"«{connection.settings_dict['NAME']}»", salida.getvalue())
+        self.assertIn("no es la base de demostración", salida.getvalue())
+
+    def test_pide_confirmacion(self):
+        with mock.patch("builtins.input", return_value="no"), self.assertRaisesMessage(CommandError, "Cancelado"):
+            call_command("cargar_datos_prueba", stdout=StringIO(), permitir_sin_debug=True)
+        self.assertFalse(Edicion.objects.exists())
+        with mock.patch("builtins.input", return_value="si"):
+            call_command("cargar_datos_prueba", stdout=StringIO(), permitir_sin_debug=True)
+        self.assertEqual(Edicion.objects.count(), 2)
+
+    @override_settings(DEBUG=False)
+    def test_se_niega_con_debug_false_sin_la_opcion_explicita(self):
+        with self.assertRaisesMessage(CommandError, "DJANGO_DEBUG=False"):
+            call_command("cargar_datos_prueba", stdout=StringIO(), interactive=False)
+        self.assertFalse(Edicion.objects.exists())
