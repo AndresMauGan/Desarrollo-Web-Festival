@@ -1,0 +1,22 @@
+{% comment %}
+Barras de resultados de una votación ya contada (votos.resultados.calcular_porcentajes):
+votacion.resultados trae las opciones de mayor a menor, con num_votos, porcentaje y ancho_barra.
+{% endcomment %}
+{% if votacion.resultados %}
+  <ol class="barras">
+    {% for opcion in votacion.resultados %}
+      <li class="barra">
+        <div class="barra-top">
+          <span>{{ opcion.nombre }}{% if opcion.aviso %} <span class="etiqueta-provisional">{{ opcion.aviso }}</span>{% endif %}</span>
+          <span class="barra-num">{{ opcion.num_votos }} voto{{ opcion.num_votos|pluralize }} · {{ opcion.porcentaje|floatformat:1 }} %</span>
+        </div>
+        <div class="barra-pista" role="img" aria-label="{{ opcion.porcentaje|floatformat:1 }} % de los votos">
+          <div class="barra-fill" style="width: {{ opcion.ancho_barra }}%"></div>
+        </div>
+      </li>
+    {% endfor %}
+  </ol>
+  <p class="muted barra-total">Total: {{ votacion.total_votos }} voto{{ votacion.total_votos|pluralize }}</p>
+{% else %}
+  <p class="muted vacio">Esta votación no tiene opciones publicadas.</p>
+{% endif %}

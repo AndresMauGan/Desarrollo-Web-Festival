@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load festival_extras %}
+{% comment %}
+Resultados públicos de una votación. Se muestran según la visibilidad que eligió el administrador
+(RN-06, pendiente P-05); mientras no se puedan ver, la página explica cuándo se publicarán.
+{% endcomment %}
+
+{% block titulo %}Resultados · {{ votacion.nombre }}{% endblock %}
+
+{% block contenido %}
+<a class="volver" href="{% url 'festival:votacion' votacion.pk %}"><i class="ph ph-caret-left" aria-hidden="true"></i> {{ votacion.nombre }}</a>
+<h1 class="vista-titulo serif">Resultados</h1>
+<p class="vista-sub">{{ votacion.nombre }} · {{ votacion.categoria.nombre }} · {{ votacion.categoria.edicion.anio }} {% estado_votacion votacion %}</p>
+
+{% if visibles %}
+  <div class="card res-votacion">
+    {% include "votos/_barras.html" %}
+  </div>
+  <p class="muted" style="margin-top:0.75rem">{{ explicacion }} Consultado el {{ consultado_en|fecha_hora_co }}.</p>
+{% else %}
+  <p class="pendiente"><i class="ph-fill ph-hourglass" aria-hidden="true"></i><span>{{ explicacion }}</span></p>
+{% endif %}
+
+<p class="dd-nota" style="margin-top:1rem">Cuándo se publican los resultados lo decide el administrador en cada votación, mientras la Fundación define la regla (P-05).</p>
+{% endblock %}

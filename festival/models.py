@@ -99,6 +99,13 @@ class Votacion(models.Model):
         default=reglas.VISIBILIDAD_RESULTADOS_POR_DEFECTO,
         help_text="Pendiente de validación (P-05). Por defecto, al cierre.",
     )
+    # RN-06, pendiente (P-05): con visibilidad «En la ceremonia», el público ve los resultados solo cuando
+    # el personal los publica. No se exige que la votación esté cerrada: esa regla no está decidida.
+    resultados_publicados = models.BooleanField(
+        "resultados publicados",
+        default=False,
+        help_text="Solo aplica con visibilidad «En la ceremonia»: el público ve los resultados cuando se marca.",
+    )
     # RN-01 (definida por la guía de la Entrega 3): el límite es un voto por usuario, categoría y edición,
     # y lo garantiza la restricción única de votos.Voto. Por eso Votación ya no tiene un límite propio.
 

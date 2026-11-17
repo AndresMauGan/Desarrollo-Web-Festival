@@ -2,7 +2,8 @@
 {% load festival_extras %}
 {% comment %}
 Pantalla 6 · Detalle de la votación (CU-02): horario, reglas y opciones publicadas.
-Sin conteos (RN-06, pendiente). El voto se emite en la página de votación de la categoría (votos:votar).
+Sin conteos: los resultados públicos están en resultados:votacion, según su visibilidad (RN-06, pendiente).
+El voto se emite en la página de votación de la categoría (votos:votar).
 {% endcomment %}
 
 {% block titulo %}{{ votacion.nombre }}{% endblock %}
@@ -21,7 +22,8 @@ Sin conteos (RN-06, pendiente). El voto se emite en la página de votación de l
     <span class="dd-nota">Aunque la categoría tenga varias votaciones, solo se elige una opción por edición (RN-01).</span></dd>
   <dt>Resultados <span class="etiqueta-provisional">Provisional</span></dt>
   <dd>{{ votacion.get_visibilidad_resultados_display }}
-    <span class="dd-nota">Pendiente de la decisión de la Fundación (P-05).</span></dd>
+    <span class="dd-nota">Pendiente de la decisión de la Fundación (P-05).</span>
+    <a class="enlace-resultados" href="{% url 'resultados:votacion' votacion.pk %}"><i class="ph ph-chart-bar" aria-hidden="true"></i> Ver resultados</a></dd>
 </dl>
 
 <section aria-labelledby="titulo-opciones">

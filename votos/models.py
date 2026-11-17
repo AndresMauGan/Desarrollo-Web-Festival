@@ -49,6 +49,8 @@ class Voto(models.Model):
         verbose_name = "voto"
         verbose_name_plural = "votos"
         ordering = ["-fecha_hora"]
+        # Permiso propio para la página de resultados del personal (/resultados/).
+        permissions = [("ver_resultados", "Puede ver los resultados de las votaciones")]
         constraints = [
             # RN-01: una sola opción por usuario, categoría y edición, aunque la categoría tenga varias votaciones.
             models.UniqueConstraint(fields=["usuario", "categoria", "edicion"], name="un_voto_por_usuario_categoria_edicion"),
