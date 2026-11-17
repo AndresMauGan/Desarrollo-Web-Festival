@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% comment %}
+500 · Error del servidor. Django la renderiza sin contexto (sin usuario ni solicitud) y no debe depender de
+datos que puedan fallar: no consulta la base de datos y solo usa {% url %} y archivos estáticos.
+{% endcomment %}
+
+{% block titulo %}Error del servidor{% endblock %}
+
+{% block contenido %}
+<div class="angosto">
+<h1 class="vista-titulo serif">Algo salió mal de nuestro lado</h1>
+<p class="vista-sub">El error quedó registrado para revisarlo. Si estabas votando, entra a «Mis votos» para comprobar
+  si tu voto quedó guardado antes de intentarlo otra vez: el sistema nunca registra dos votos en la misma categoría.</p>
+<div class="acciones">
+  <a class="btn btn-primary btn-block" href="{% url 'festival:inicio' %}">Ir al inicio</a>
+  <a class="btn btn-ghost btn-block" href="{% url 'votos:mis_votos' %}">Ver mis votos</a>
+</div>
+</div>
+{% endblock %}

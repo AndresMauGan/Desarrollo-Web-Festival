@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% comment %}403 por fallo de CSRF (formulario vencido o enviado desde otro sitio). La renderiza config.vistas_error.fallo_csrf.{% endcomment %}
+
+{% block titulo %}Formulario vencido{% endblock %}
+
+{% block contenido %}
+<div class="angosto">
+<h1 class="vista-titulo serif">El formulario venció</h1>
+<p class="vista-sub">Por seguridad, no pudimos verificar que el formulario lo enviaste tú desde este sitio. Suele pasar si la página
+  estuvo abierta mucho tiempo, si cerraste sesión en otra pestaña o si el navegador bloquea las cookies.</p>
+<p class="pendiente"><i class="ph-fill ph-info" aria-hidden="true"></i><span>No se guardó nada. Vuelve a la página anterior, recárgala y envía el formulario otra vez.</span></p>
+<div class="acciones">
+  <a class="btn btn-primary btn-block" href="{% url 'festival:inicio' %}">Ir al inicio</a>
+</div>
+</div>
+{% endblock %}

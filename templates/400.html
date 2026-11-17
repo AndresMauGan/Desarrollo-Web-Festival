@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% comment %}400 · Solicitud incorrecta (por ejemplo, un encabezado Host no permitido). La renderiza django.views.defaults.bad_request.{% endcomment %}
+
+{% block titulo %}Solicitud incorrecta{% endblock %}
+
+{% block contenido %}
+<div class="angosto">
+<h1 class="vista-titulo serif">No pudimos procesar la solicitud</h1>
+<p class="vista-sub">La solicitud llegó incompleta o con datos que no son válidos. Vuelve al inicio e inténtalo de nuevo.</p>
+<div class="acciones">
+  <a class="btn btn-primary btn-block" href="{% url 'festival:inicio' %}">Ir al inicio</a>
+</div>
+</div>
+{% endblock %}
