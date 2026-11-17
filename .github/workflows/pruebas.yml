@@ -12,7 +12,8 @@ on:
 
 jobs:
   pruebas:
-    runs-on: ubuntu-latest
+    # Versión fija: «ubuntu-latest» cambia de sistema sin aviso (en octubre de 2026 pasó a Ubuntu 26.04)
+    runs-on: ubuntu-24.04
 
     services:
       mysql:
@@ -35,15 +36,23 @@ jobs:
       DJANGO_DEBUG: "False"
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: pip
 
+      # La imagen del runner ya trae MySQL y sus bibliotecas. Solo se instalan si faltan y sin actualizar
+      # el MySQL de la imagen: al actualizarlo, su instalación falla dentro del runner.
       - name: Dependencias del sistema para mysqlclient
-        run: sudo apt-get update && sudo apt-get install -y pkg-config libmysqlclient-dev
+        run: |
+          if pkg-config --exists mysqlclient; then
+            echo "libmysqlclient ya está instalada: $(pkg-config --modversion mysqlclient)"
+          else
+            sudo apt-get update
+            sudo apt-get install -y --no-install-recommends --no-upgrade pkg-config libmysqlclient-dev
+          fi
 
       - name: Dependencias de Python
         run: pip install -r requirements.txt
