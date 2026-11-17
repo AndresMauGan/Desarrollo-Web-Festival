@@ -1,0 +1,80 @@
+# Integración continua: en cada push y pull request instala el proyecto y corre las pruebas contra MySQL 8.0.
+#
+# Credenciales: ninguna está escrita aquí.
+# - MySQL corre en un contenedor efímero que solo existe durante el flujo, con root sin contraseña.
+# - La contraseña de festival_app y la SECRET_KEY se generan al empezar cada ejecución y se ocultan
+#   en el registro con ::add-mask::.
+name: Pruebas
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  pruebas:
+    # Versión fija: «ubuntu-latest» cambia de sistema sin aviso (en octubre de 2026 pasó a Ubuntu 26.04)
+    runs-on: ubuntu-24.04
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      DB_NAME: festival_votaciones
+      DB_USER: festival_app
+      DB_HOST: 127.0.0.1
+      DB_PORT: "3306"
+      DJANGO_DEBUG: "False"
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      # La imagen del runner ya trae MySQL y sus bibliotecas. Solo se instalan si faltan y sin actualizar
+      # el MySQL de la imagen: al actualizarlo, su instalación falla dentro del runner.
+      - name: Dependencias del sistema para mysqlclient
+        run: |
+          if pkg-config --exists mysqlclient; then
+            echo "libmysqlclient ya está instalada: $(pkg-config --modversion mysqlclient)"
+          else
+            sudo apt-get update
+            sudo apt-get install -y --no-install-recommends --no-upgrade pkg-config libmysqlclient-dev
+          fi
+
+      - name: Dependencias de Python
+        run: pip install -r requirements.txt
+
+      - name: Usuario de MySQL y clave de Django generados para esta ejecución
+        run: |
+          DB_PASSWORD="$(python -c 'import secrets; print(secrets.token_urlsafe(24))')"
+          echo "::add-mask::$DB_PASSWORD"
+          echo "DB_PASSWORD=$DB_PASSWORD" >> "$GITHUB_ENV"
+          mysql -h 127.0.0.1 -u root <<SQL
+          CREATE DATABASE festival_votaciones CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+          CREATE USER 'festival_app'@'%' IDENTIFIED BY '$DB_PASSWORD';
+          GRANT ALL PRIVILEGES ON festival_votaciones.* TO 'festival_app'@'%';
+          GRANT ALL PRIVILEGES ON test_festival_votaciones.* TO 'festival_app'@'%';
+          FLUSH PRIVILEGES;
+          SQL
+          SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(50))')"
+          echo "::add-mask::$SECRET_KEY"
+          echo "DJANGO_SECRET_KEY=$SECRET_KEY" >> "$GITHUB_ENV"
+
+      - name: Sin migraciones pendientes
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Pruebas
+        run: python manage.py test

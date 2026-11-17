@@ -21,7 +21,7 @@ class VotosBase(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.usuario = get_user_model().objects.create_user(email="votante@example.com", password="Votante-2027", nombre_para_mostrar="Votante")
+        cls.usuario = get_user_model().objects.create_user(email="votante@example.com", nombre_para_mostrar="Votante")
         cls.edicion = Edicion.objects.create(numero=60, anio=2027, nombre="60.º", fecha_inicio=date(2027, 4, 28), fecha_fin=date(2027, 5, 1))
         cls.categoria = Categoria.objects.create(edicion=cls.edicion, nombre="Piquería Mayor", familia=Categoria.Familia.PIQUERIA)
         cls.otra_categoria = Categoria.objects.create(edicion=cls.edicion, nombre="Canción Inédita", familia=Categoria.Familia.CANCION)
@@ -87,7 +87,7 @@ class VotoTests(VotosBase):
     def test_restriccion_permite_otra_categoria_y_otro_usuario(self):
         self.votar()
         self.votar(opcion=self.opcion_otra_categoria, hash_auditoria="d" * 64)
-        otro = get_user_model().objects.create_user(email="otra@example.com", password="Votante-2027", nombre_para_mostrar="Otra")
+        otro = get_user_model().objects.create_user(email="otra@example.com", nombre_para_mostrar="Otra")
         self.votar(usuario=otro, hash_auditoria="e" * 64)
         self.assertEqual(Voto.objects.count(), 3)
 
@@ -141,7 +141,7 @@ class RegistroAuditoriaTests(VotosBase):
 
 class AdminSoloLecturaTests(VotosBase):
     def setUp(self):
-        admin = get_user_model().objects.create_superuser(email="admin@example.com", password="Admin-Prueba-2027", nombre_para_mostrar="Admin")
+        admin = get_user_model().objects.create_superuser(email="admin@example.com", nombre_para_mostrar="Admin")
         self.client.force_login(admin)
 
     def test_voto_y_auditoria_no_se_agregan_ni_editan(self):

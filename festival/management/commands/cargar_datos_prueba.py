@@ -9,12 +9,17 @@ Horario de demostración: las votaciones abiertas se dejan abiertas desde una ho
 después del momento de la carga. Así se puede votar hoy, porque el servidor exige que la votación esté
 dentro de su horario (RN-03); las fechas de la edición siguen siendo las de 2027.
 No crea usuarios: los votantes se registran desde la interfaz y el personal con createsuperuser.
+
+Los datos de prueba van en la base de demostración (DB_NAME=festival_demo), nunca en la real:
+- el comando muestra el nombre de la base y pide confirmación (--no-input la omite);
+- con DJANGO_DEBUG=False se niega a ejecutarse, salvo con --permitir-sin-debug.
 """
 
 from datetime import date, datetime, timedelta
 
-from django.core.management.base import BaseCommand
-from django.db import transaction
+from django.conf import settings
+from django.core.management.base import BaseCommand, CommandError
+from django.db import connection, transaction
 from django.utils import timezone
 
 from festival.models import Categoria, Edicion, Opcion, Votacion
@@ -101,10 +106,34 @@ def guardar(modelo, buscar, valores):
 
 
 class Command(BaseCommand):
-    help = "Carga ediciones, categorías, votaciones y opciones de prueba (nombres ficticios)."
+    help = "Carga ediciones, categorías, votaciones y opciones de prueba (nombres ficticios) en la base de demostración."
+
+    def add_arguments(self, parser):
+        parser.add_argument("--noinput", "--no-input", action="store_false", dest="interactive",
+                            help="No pide confirmación.")
+        parser.add_argument("--permitir-sin-debug", action="store_true",
+                            help="Permite ejecutarlo con DJANGO_DEBUG=False (por ejemplo, en las pruebas).")
+
+    def handle(self, *args, interactive=True, permitir_sin_debug=False, **options):
+        base = connection.settings_dict["NAME"]
+        if not settings.DEBUG and not permitir_sin_debug:
+            raise CommandError("DJANGO_DEBUG=False: este comando carga datos ficticios y no se ejecuta en una configuración "
+                               "de producción. Si de verdad es una base de demostración, usa --permitir-sin-debug.")
+        self.stdout.write(f"Se cargarán datos de prueba en la base «{base}».")
+        if not base.endswith("_demo"):
+            self.stdout.write(self.style.WARNING(f"Atención: «{base}» no es la base de demostración (por ejemplo, festival_demo). "
+                                                 "Los datos de prueba no deben mezclarse con los reales."))
+        if interactive:
+            try:
+                respuesta = input("¿Continuar? Escribe «si» para confirmar: ")
+            except EOFError:
+                respuesta = ""
+            if respuesta.strip().lower() not in ("si", "sí", "s"):
+                raise CommandError("Cancelado: no se cargó nada.")
+        self.cargar()
 
     @transaction.atomic
-    def handle(self, *args, **options):
+    def cargar(self):
         conteo = {"ediciones": 0, "categorias": 0, "votaciones": 0, "opciones": 0}
         ahora = timezone.now()
 
